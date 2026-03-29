@@ -6,6 +6,7 @@ class AppButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool filled;
   final double height;
+  final String? assetPath;
 
   const AppButton({
     super.key,
@@ -13,6 +14,7 @@ class AppButton extends StatelessWidget {
     required this.onTap,
     this.filled = true,
     this.height = 60,
+    this.assetPath,
   });
 
   @override
@@ -33,12 +35,21 @@ class AppButton extends StatelessWidget {
             ),
           ),
         ),
-        child: Text(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (assetPath != null) ...[
+              Image.asset(assetPath!, width: 24, height: 24),
+              const SizedBox(width: 10),
+            ],
+          Text(
           text,
           style: const TextStyle(
             fontSize: 17,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w700,),
           ),
+          ],
         ),
       ),
     );

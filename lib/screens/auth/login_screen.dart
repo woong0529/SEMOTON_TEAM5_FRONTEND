@@ -70,11 +70,13 @@ class LoginScreen extends StatelessWidget {
                 text: '구글 계정으로 계속하기',
                 filled: false,
                 onTap: () {},
+                assetPath: 'assets/google-logo.png',
               ),
               const SizedBox(height: 10),
               AppButton(
                 text: '네이버 계정으로 계속하기',
                 filled: false,
+                assetPath: 'assets/naver-icon-style.png',
                 onTap: () {},
               ),
               const Spacer(),
