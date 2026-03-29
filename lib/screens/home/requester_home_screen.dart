@@ -176,7 +176,8 @@ class _RecommendationPage extends StatelessWidget {
                             builder: (_) => JobDetailScreen(
                               post: senior,
                               showDecisionButtons: false,
-                              showPhoneNumber: true,
+                              showPhoneNumber: false,
+                              isSenior: true,
                             ),
                           ),
                         );

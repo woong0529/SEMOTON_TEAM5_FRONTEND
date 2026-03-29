@@ -164,7 +164,7 @@ class _JobCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => JobDetailScreen(post: post),
+            builder: (_) => JobDetailScreen(post: post, isSenior: false),
           ),
         );
       },
@@ -291,6 +291,8 @@ class _MatchingPage extends StatelessWidget {
                       post: post,
                       showDecisionButtons: false,
                       showPhoneNumber: true,
+                      terminated: true,
+                      isSenior: false,
                     ),
                   ),
                 );

@@ -73,6 +73,7 @@ class NotificationScreen extends StatelessWidget {
                     post: item['post'] as Map<String, dynamic>,
                     showDecisionButtons: true,
                     showPhoneNumber: true,
+                    isSenior: isSenior,
                   ),
                 ),
               );

@@ -7,12 +7,16 @@ class JobDetailScreen extends StatelessWidget {
   final Map<String, dynamic> post;
   final bool showDecisionButtons;
   final bool showPhoneNumber;
+  final bool terminated;
+  final bool isSenior;
 
   const JobDetailScreen({
     super.key,
     required this.post,
     this.showDecisionButtons = false,
     this.showPhoneNumber = false,
+    this.terminated = false,
+    required this.isSenior,
   });
 
   @override
@@ -55,14 +59,12 @@ class JobDetailScreen extends StatelessWidget {
                 children: tags.map((e) => TagChip(label: e)).toList(),
               ),
               const SizedBox(height: 22),
-              _info('구체적인 요청 사항', post['content']),
+              _info(isSenior ? '시니어 설명' : '구체적인 요청 사항', post['content']),
               _info('시간', '${post['date']} / ${post['time']}'),
               _info('위치', post['location']),
-              _info('보수', post['reward']),
-              _info(
-                '요청자 정보',
-                '${post['requesterName']} / ${post['requesterGender']}',
-              ),
+              _info(isSenior ? '점수' : '보수', post['reward']),
+              _info(isSenior ? '시니어 정보' : '요청자 정보',
+                '${post['requesterName']} / ${post['requesterGender']}',),
               if (showPhoneNumber)
                 _info(
                   '전화번호',
@@ -88,8 +90,18 @@ class JobDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ), 
+              ]
+              else if (terminated) ...[
+                AppButton(
+                  text: '일 종료',
+                  onTap: () {ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('일이 종료되었어요.')),
+                    );},
                 ),
-              ] else ...[
+                
+              ]
+              else ...[
                 AppButton(
                   text: '신청하기',
                   onTap: () {

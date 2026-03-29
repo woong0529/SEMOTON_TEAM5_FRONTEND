@@ -30,6 +30,7 @@ class RoleSelectScreen extends StatelessWidget {
                   height: 1.25,
                 ),
               ),
+              const Spacer(),
               const SizedBox(height: 28),
 
               _RoleCard(
@@ -78,6 +79,7 @@ class RoleSelectScreen extends StatelessWidget {
                   }
                 },
               ),
+              const Spacer(),
             ],
           ),
         ),
@@ -133,7 +135,7 @@ class _RoleCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
