@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../widgets/app_button.dart';
-import 'role_select_screen.dart';
+import '../../core/app_colors.dart';
+import '../senior_signup/senior_intro_screen.dart';
+import '../requester_signup/requester_signup_screen.dart';
+import 'phone_login_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -8,80 +10,255 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const _Logo(),
               const SizedBox(height: 20),
               const Text(
-                'SEE:NEAR',
+                '시니어와\n가까운 도움을\n연결해요',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '도움을 주고, 도움을 받고,\n따뜻한 연결이 시작되는 곳',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColors.subText,
+                  height: 1.6,
                 ),
               ),
               const Spacer(),
+              Center(
+                child: Text(
+                  '처음 오셨나요?',
+                  style: TextStyle(fontSize: 14, color: AppColors.subText),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _BigButton(
+                text: '회원가입 하기',
+                filled: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const RoleSelectScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _BigButton(
+                text: '로그인하러 가기',
+                filled: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const PhoneLoginScreen()),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── 역할 선택 (카드형 스타일) ──────────────────────────────
+class RoleSelectScreen extends StatelessWidget {
+  const RoleSelectScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const BackButton(),
+              const SizedBox(height: 10),
               const Text(
-                '시니어와\n가까운 도움을 연결해요',
+                '어떤 역할로\n시작할까요?',
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
                   height: 1.25,
                 ),
               ),
-              const SizedBox(height: 14),
-              const Text(
-                '도움을 주고, 도움을 받고,\n따뜻한 연결이 시작되는 곳',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.black54,
-                  height: 1.5,
+              const Spacer(),
+              _RoleCard(
+                title: '도움을 받으러 오셨나요?',
+                subtitle: '공고를 작성하고 시니어를 추천받아요',
+                icon: Icons.favorite_border,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const RequesterSignupScreen()),
                 ),
               ),
-              const SizedBox(height: 32),
-              AppButton(
-                text: '회원가입',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RoleSelectScreen(isSignup: true),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 14),
-              AppButton(
-                text: '로그인',
-                filled: false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RoleSelectScreen(isSignup: false),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 14),
-              AppButton(
-                text: '구글 계정으로 계속하기',
-                filled: false,
-                onTap: () {},
-                assetPath: 'assets/google-logo.png',
-              ),
-              const SizedBox(height: 10),
-              AppButton(
-                text: '네이버 계정으로 계속하기',
-                filled: false,
-                assetPath: 'assets/naver-icon-style.png',
-                onTap: () {},
+              const SizedBox(height: 20),
+              _RoleCard(
+                title: '도움을 주러 오셨나요?',
+                subtitle: '시니어로 가입하고 공고를 확인해요',
+                icon: Icons.volunteer_activism_outlined,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const SeniorIntroScreen()),
+                ),
               ),
               const Spacer(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _RoleCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(26),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.primarySoft,
+              child: Icon(icon, color: AppColors.primary, size: 28),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.subText,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.subText),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Logo extends StatelessWidget {
+  const _Logo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.stars_rounded,
+              color: AppColors.primary, size: 22),
+        ),
+        const SizedBox(width: 10),
+        const Text(
+          'SEE:NEAR',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BigButton extends StatelessWidget {
+  final String text;
+  final bool filled;
+  final VoidCallback onTap;
+  const _BigButton(
+      {required this.text, required this.filled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: filled ? AppColors.primary : Colors.white,
+          foregroundColor: filled ? Colors.white : AppColors.text,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: filled ? AppColors.primary : AppColors.border,
+              width: 1.5,
+            ),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
         ),
       ),
     );

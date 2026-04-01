@@ -1,88 +1,107 @@
 import 'package:flutter/material.dart';
-import 'job_detail_screen.dart';
+import '../../core/app_colors.dart';
+import '../../services/notification_service.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   final bool isSenior;
+  const NotificationScreen({super.key, required this.isSenior});
 
-  const NotificationScreen({
-    super.key,
-    required this.isSenior,
-  });
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  List<Map<String, dynamic>> _notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    final res = await NotificationService.getNotifications();
+    if (mounted) {
+      setState(() {
+        _notifications = res.data ?? [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  IconData _iconFor(String type) {
+    switch (type) {
+      case 'PROPOSAL': return Icons.person_add_outlined;
+      case 'ACCEPT': return Icons.check_circle_outline;
+      case 'REJECT': return Icons.cancel_outlined;
+      case 'JOB': return Icons.work_outline;
+      default: return Icons.notifications_outlined;
+    }
+  }
+
+  Color _colorFor(String type) {
+    switch (type) {
+      case 'PROPOSAL': return AppColors.primary;
+      case 'ACCEPT': return AppColors.success;
+      case 'REJECT': return AppColors.subText;
+      default: return AppColors.warning;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      {
-        'title': isSenior ? '요청자의 요청이 도착했어요' : '시니어 지원이 들어왔어요',
-        'post': {
-          'title': '병원 동행 도와주세요',
-          'content': '오전 진료 동행과 접수 보조가 필요합니다.',
-          'date': '2026-03-30',
-          'time': '오전 10:00',
-          'location': '경희대 인근 병원',
-          'reward': '25,000원',
-          'requesterName': '김민지',
-          'requesterGender': '여성',
-          'phone': '010-2222-3333',
-          'tags': ['#병원동행', '#말벗', '#관공서동행'],
-        }
-      },
-      {
-        'title': '공고가 수락되었어요',
-        'post': {
-          'title': '강아지 산책 부탁드려요',
-          'content': '30분 정도 단지 산책을 부탁드립니다.',
-          'date': '2026-03-31',
-          'time': '오후 4:00',
-          'location': '휘경동 아파트 단지',
-          'reward': '15,000원',
-          'requesterName': '박소연',
-          'requesterGender': '여성',
-          'phone': '010-4444-5555',
-          'tags': ['#강아지산책', '#반려동물', '#산책친구'],
-        }
-      },
-    ];
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('알림')),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 8,
-            ),
-            tileColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            title: Text(
-              item['title'] as String,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            subtitle: const Text('눌러서 상세 내용을 확인하세요'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => JobDetailScreen(
-                    post: item['post'] as Map<String, dynamic>,
-                    showDecisionButtons: true,
-                    showPhoneNumber: true,
-                    isSenior: isSenior,
-                  ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _notifications.isEmpty
+              ? const Center(child: Text('알림이 없어요'))
+              : ListView.separated(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: _notifications.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final item = _notifications[index];
+                    final type = item['type'] as String? ?? 'JOB';
+                    final isRead = item['is_read'] as bool? ?? false;
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isRead ? Colors.white : AppColors.primarySoft,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isRead
+                              ? AppColors.border
+                              : AppColors.primary.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(
+                              color: _colorFor(type).withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(_iconFor(type), color: _colorFor(type), size: 22),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              item['content'] as String? ?? '',
+                              style: TextStyle(
+                                fontWeight: isRead ? FontWeight.w600 : FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          );
-        },
-        separatorBuilder: (_, __) => const SizedBox(height: 14),
-        itemCount: items.length,
-      ),
     );
   }
 }
