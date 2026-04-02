@@ -3,20 +3,9 @@ import 'package:kakaomap_webview/kakaomap_webview.dart';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
+import '../../utils/place_model.dart';
+import '../../services/location_service.dart';
 
-class PlaceModel {
-  String name;
-  double latitude;
-  double longitude;
-  bool isPrimary;
-
-  PlaceModel({
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    this.isPrimary = false,
-  });
-}
 
 class LocationEditScreen extends StatefulWidget {
   // 마이페이지에서 진입할 때 서버에서 받은 기존 리스트를 넘겨줍니다.
@@ -53,20 +42,8 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
 
     setState(() => _isSaving = true);
 
-    // 백엔드 포맷으로 변환
-    final List<Map<String, dynamic>> locationsData = _editingLocations
-        .map(
-          (p) => {
-            'location_name': p.name,
-            'latitude': p.latitude,
-            'longitude': p.longitude,
-            'is_primary': p.isPrimary,
-          },
-        )
-        .toList();
-
-    // 서비스 호출 (AuthService에 updateLocations 함수가 있다고 가정)
-    final res = await AuthService.updateLocations(locationsData);
+    // 서비스 호출 (LocationService에 updateLocations 함수가 있다고 가정)
+    final res = await LocationService.updateMyLocations(_editingLocations);
 
     if (!mounted) return;
     setState(() => _isSaving = false);

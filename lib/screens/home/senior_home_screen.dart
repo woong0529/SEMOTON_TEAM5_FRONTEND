@@ -8,6 +8,8 @@ import '../auth/login_screen.dart';
 import 'job_detail_screen.dart';
 import 'notification_screen.dart';
 import 'search_screen.dart';
+import '../../services/location_service.dart';
+import '../common/location_edit_screen.dart';
 
 class SeniorHomeScreen extends StatefulWidget {
   const SeniorHomeScreen({super.key});
@@ -711,6 +713,40 @@ class _ProfilePageState extends State<_ProfilePage> {
         ),
 
         const SizedBox(height: 28),
+
+        AppButton(
+          text: '활동 거점 수정하기',
+          filled: false, // 테두리만 있는 스타일 (선택사항)
+          onTap: () async {
+          // 1. 서버에서 현재 내 위치 리스트를 가져옵니다.
+          // (로딩 다이얼로그를 띄우면 더 친절한 UI가 됩니다)
+          final response = await LocationService.getMyLocations();
+
+          if (response.success && response.data != null) {
+          // 2. 데이터를 성공적으로 가져오면 수정 페이지로 이동!
+            if (!context.mounted) return;
+      
+            await Navigator.push(
+                context,
+              MaterialPageRoute(
+                builder: (context) => LocationEditScreen(
+                initialLocations: response.data!, 
+                ),
+              ),
+            );
+      
+          // 3. 수정 페이지에서 '저장' 후 돌아왔을 때 
+          // 추가로 할 작업이 있다면 여기에 작성 (현재는 필요 없음)
+      
+          } else {
+          // 4. 실패 시 에러 메시지 표시
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.error ?? '위치 정보를 불러오지 못했습니다.')),
+            );
+          }
+        },
+        ),
 
         if (_isEditing)
           AppButton(text: '저장하기', onTap: _saveProfile)
