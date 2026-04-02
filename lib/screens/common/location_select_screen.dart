@@ -19,17 +19,18 @@ class LocationSelectionScreen extends StatefulWidget {
   const LocationSelectionScreen({super.key});
 
   @override
-  State<LocationSelectionScreen> createState() => _LocationSelectionScreenState();
+  State<LocationSelectionScreen> createState() =>
+      _LocationSelectionScreenState();
 }
 
 class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   // 선택된 장소들을 담을 리스트 (최대 3개)
   final List<PlaceModel> _selectedPlaces = [];
-  
+
   // 현재 지도에서 임시로 찍힌 좌표 (카카오맵 API 연동 시 업데이트될 변수)
-  double _currentLat = 37.5665;
-  double _currentLng = 126.9780;
-  String _currentMapName = "선택된 위치 명칭"; // API에서 받아올 장소명
+  final double _currentLat = 37.5665;
+  final double _currentLng = 126.9780;
+  final String _currentMapName = "선택된 위치 명칭"; // API에서 받아올 장소명
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           // 모든 설정 완료 후 이전 페이지로 데이터 전달
           TextButton(
             onPressed: _selectedPlaces.isNotEmpty ? _finishSelection : null,
-            child: const Text("완료", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              "완료",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -54,16 +58,24 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               color: Colors.grey[200],
               child: Stack(
                 children: [
-                  const Center(child: Text("카카오맵 API 위젯 위치\n(지도를 터치해 장소를 선택하세요)")),
+                  const Center(
+                    child: Text("카카오맵 API 위젯 위치\n(지도를 터치해 장소를 선택하세요)"),
+                  ),
                   // 중앙 핀 표시
-                  const Center(child: Icon(Icons.location_on, color: Colors.red, size: 40)),
+                  const Center(
+                    child: Icon(Icons.location_on, color: Colors.red, size: 40),
+                  ),
                   // 장소 추가 버튼
                   Positioned(
                     bottom: 20,
                     right: 20,
                     child: FloatingActionButton.extended(
-                      onPressed: _selectedPlaces.length < 3 ? _showAddDialog : null,
-                      backgroundColor: _selectedPlaces.length < 3 ? Colors.blue : Colors.grey,
+                      onPressed: _selectedPlaces.length < 3
+                          ? _showAddDialog
+                          : null,
+                      backgroundColor: _selectedPlaces.length < 3
+                          ? Colors.blue
+                          : Colors.grey,
                       label: Text("장소 추가 (${_selectedPlaces.length}/3)"),
                       icon: const Icon(Icons.add),
                     ),
@@ -81,8 +93,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("자주 가는 장소 리스트 (클릭하여 주요 거점 설정)",
-                      style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  const Text(
+                    "자주 가는 장소 리스트 (클릭하여 주요 거점 설정)",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
                   const SizedBox(height: 10),
                   Expanded(
                     child: _selectedPlaces.isEmpty
@@ -93,19 +107,33 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                               final place = _selectedPlaces[index];
                               return Card(
                                 elevation: place.isPrimary ? 4 : 1,
-                                color: place.isPrimary ? Colors.blue[50] : Colors.white,
+                                color: place.isPrimary
+                                    ? Colors.blue[50]
+                                    : Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
-                                    color: place.isPrimary ? Colors.blue : Colors.transparent,
+                                    color: place.isPrimary
+                                        ? Colors.blue
+                                        : Colors.transparent,
                                     width: 2,
                                   ),
                                 ),
                                 child: ListTile(
-                                  title: Text(place.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  subtitle: Text(place.isPrimary ? "★ 주요 거점" : "일반 장소"),
+                                  title: Text(
+                                    place.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    place.isPrimary ? "★ 주요 거점" : "일반 장소",
+                                  ),
                                   trailing: IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
                                     onPressed: () => _removePlace(index),
                                   ),
                                   onTap: () => _setPrimaryPlace(index),
@@ -125,7 +153,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
 
   // 1. 장소 추가 팝업 (이름 확인 및 추가)
   void _showAddDialog() {
-    TextEditingController nameController = TextEditingController(text: _currentMapName);
+    TextEditingController nameController = TextEditingController(
+      text: _currentMapName,
+    );
 
     showDialog(
       context: context,
@@ -139,17 +169,22 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("취소")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("취소"),
+          ),
           ElevatedButton(
             onPressed: () {
               setState(() {
-                _selectedPlaces.add(PlaceModel(
-                  name: nameController.text,
-                  latitude: _currentLat,
-                  longitude: _currentLng,
-                  // 첫 번째로 추가하는 장소는 자동으로 주요 거점 설정
-                  isPrimary: _selectedPlaces.isEmpty,
-                ));
+                _selectedPlaces.add(
+                  PlaceModel(
+                    name: nameController.text,
+                    latitude: _currentLat,
+                    longitude: _currentLng,
+                    // 첫 번째로 추가하는 장소는 자동으로 주요 거점 설정
+                    isPrimary: _selectedPlaces.isEmpty,
+                  ),
+                );
               });
               Navigator.pop(context);
             },

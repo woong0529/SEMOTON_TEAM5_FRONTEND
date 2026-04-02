@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
@@ -31,13 +32,17 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
 
   void _next() {
     _pageController.nextPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage++);
   }
 
   void _prev() {
     _pageController.previousPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage--);
   }
 
@@ -65,21 +70,27 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
 
   Future<void> _submit() async {
     setState(() => _isSubmitting = true);
-    final locationsData = _selectedPlaces.map((p) => {
-      'location_name': p.name,
-      'latitude': p.latitude,
-      'longitude': p.longitude,
-      'is_primary': p.isPrimary,
-    }).toList();
+    final locationsData = _selectedPlaces
+        .map(
+          (p) => {
+            'location_name': p.name,
+            'latitude': p.latitude,
+            'longitude': p.longitude,
+            'is_primary': p.isPrimary,
+          },
+        )
+        .toList();
 
-    final finalLocations = locationsData.isNotEmpty 
-      ? locationsData 
-      : [{
-          'location_name': '기본 거점',
-          'latitude': 37.5665,
-          'longitude': 126.9780,
-          'is_primary': true,
-        }];
+    final finalLocations = locationsData.isNotEmpty
+        ? locationsData
+        : [
+            {
+              'location_name': '기본 거점',
+              'latitude': 37.5665,
+              'longitude': 126.9780,
+              'is_primary': true,
+            },
+          ];
 
     final res = await AuthService.signupSenior(
       phoneNumber: _phone,
@@ -100,9 +111,9 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
         (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.error ?? '가입 실패')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.error ?? '가입 실패')));
     }
   }
 
@@ -120,25 +131,46 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _StepAuthCode(
-                      onNext: (code) { _authCode = code; _next(); }),
+                    onNext: (code) {
+                      _authCode = code;
+                      _next();
+                    },
+                  ),
                   _StepName(
-                      onNext: (name) { _name = name; _next(); },
-                      onBack: _prev),
+                    onNext: (name) {
+                      _name = name;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepGender(
-                      selected: _gender,
-                      onNext: (g) { _gender = g; _next(); },
-                      onBack: _prev),
+                    selected: _gender,
+                    onNext: (g) {
+                      _gender = g;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepBirthYear(
-                      onNext: (y) { _birthYear = y; _next(); },
-                      onBack: _prev),
+                    onNext: (y) {
+                      _birthYear = y;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepLocation(
                     town: _town,
                     onLocationChanged: (List<PlaceModel> places) {
                       setState(() {
                         _selectedPlaces = places;
                         if (places.isNotEmpty) {
-                          final primary = places.firstWhere((p) => p.isPrimary, orElse: () => places.first);
-                          _town = places.length > 1 ? "${primary.name} 외 ${places.length - 1}곳" : primary.name;
+                          final primary = places.firstWhere(
+                            (p) => p.isPrimary,
+                            orElse: () => places.first,
+                          );
+                          _town = places.length > 1
+                              ? "${primary.name} 외 ${places.length - 1}곳"
+                              : primary.name;
                         } else {
                           _town = '';
                         }
@@ -290,6 +322,59 @@ class _StepName extends StatefulWidget {
 
 class _StepNameState extends State<_StepName> {
   final _controller = TextEditingController();
+  bool _isListening = false;
+  late stt.SpeechToText _speech;
+  bool _speechEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechEnabled = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && _isListening) {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        setState(() => _isListening = false);
+      },
+    );
+    setState(() {});
+  }
+
+  void _toggleListening() async {
+    if (!_speechEnabled) return;
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      localeId: 'ko_KR',
+      onResult: (result) {
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -304,15 +389,54 @@ class _StepNameState extends State<_StepName> {
             autofocus: true,
             decoration: const InputDecoration(hintText: '홍길동'),
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: GestureDetector(
+              onTap: _toggleListening,
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: _isListening ? AppColors.primary : AppColors.border,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isListening ? Icons.mic : Icons.mic_none,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Center(
+            child: Text(
+              '말하면 이름을 자동으로 입력합니다',
+              style: TextStyle(fontSize: 13, color: AppColors.subText),
+            ),
+          ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () {
-              if (_controller.text.trim().isEmpty) return;
-              widget.onNext(_controller.text.trim());
-            })),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () {
+                    if (_controller.text.trim().isEmpty) return;
+                    widget.onNext(_controller.text.trim());
+                  },
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -325,8 +449,11 @@ class _StepGender extends StatefulWidget {
   final String selected;
   final void Function(String) onNext;
   final VoidCallback onBack;
-  const _StepGender(
-      {required this.selected, required this.onNext, required this.onBack});
+  const _StepGender({
+    required this.selected,
+    required this.onNext,
+    required this.onBack,
+  });
 
   @override
   State<_StepGender> createState() => _StepGenderState();
@@ -362,15 +489,18 @@ class _StepGenderState extends State<_StepGender> {
                       color: sel ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
                     child: Center(
-                      child: Text(g,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: sel ? Colors.white : AppColors.text,
-                          )),
+                      child: Text(
+                        g,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: sel ? Colors.white : AppColors.text,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -378,11 +508,24 @@ class _StepGenderState extends State<_StepGender> {
             }).toList(),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () => widget.onNext(_selected))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () => widget.onNext(_selected),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -417,17 +560,30 @@ class _StepBirthYearState extends State<_StepBirthYear> {
             decoration: const InputDecoration(hintText: '예: 19650712'),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () {
-              final text = _controller.text.trim();
-              if (text.length < 4) return;
-              final year = int.tryParse(text.substring(0, 4));
-              if (year == null) return;
-              widget.onNext(year);
-            })),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () {
+                    final text = _controller.text.trim();
+                    if (text.length < 4) return;
+                    final year = int.tryParse(text.substring(0, 4));
+                    if (year == null) return;
+                    widget.onNext(year);
+                  },
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -453,7 +609,6 @@ class _StepLocation extends StatefulWidget {
 }
 
 class _StepLocationState extends State<_StepLocation> {
-
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
@@ -494,8 +649,11 @@ class _StepLocationState extends State<_StepLocation> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.place_rounded,
-                      color: AppColors.primary, size: 20),
+                  const Icon(
+                    Icons.place_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -511,11 +669,21 @@ class _StepLocationState extends State<_StepLocation> {
               ),
             ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: widget.onNext)),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(text: '다음', onTap: widget.onNext),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -528,8 +696,11 @@ class _StepStrength extends StatefulWidget {
   final void Function(String phone, String text) onNext;
   final VoidCallback onBack;
   final bool isLoading;
-  const _StepStrength(
-      {required this.onNext, required this.onBack, required this.isLoading});
+  const _StepStrength({
+    required this.onNext,
+    required this.onBack,
+    required this.isLoading,
+  });
 
   @override
   State<_StepStrength> createState() => _StepStrengthState();
@@ -538,6 +709,60 @@ class _StepStrength extends StatefulWidget {
 class _StepStrengthState extends State<_StepStrength> {
   final _phoneController = TextEditingController();
   final _textController = TextEditingController();
+  bool _isListening = false;
+  late stt.SpeechToText _speech;
+  bool _speechEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechEnabled = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && _isListening) {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        setState(() => _isListening = false);
+      },
+    );
+    setState(() {});
+  }
+
+  void _toggleListening() async {
+    if (!_speechEnabled) return;
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      localeId: 'ko_KR',
+      onResult: (result) {
+        setState(() {
+          _textController.text = result.recognizedWords;
+          _textController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _textController.text.length),
+          );
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _phoneController.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -551,14 +776,20 @@ class _StepStrengthState extends State<_StepStrength> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
-                labelText: '전화번호', hintText: '010-1234-5678'),
+              labelText: '전화번호',
+              hintText: '010-1234-5678',
+            ),
           ),
           const SizedBox(height: 20),
-          const Text('어떤 일을 잘 하시나요?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const Text(
+            '어떤 일을 잘 하시나요?',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
-          const Text('AI가 자동으로 태그를 만들어드려요',
-              style: TextStyle(fontSize: 14, color: AppColors.subText)),
+          const Text(
+            'AI가 자동으로 태그를 만들어드려요',
+            style: TextStyle(fontSize: 14, color: AppColors.subText),
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _textController,
@@ -567,43 +798,85 @@ class _StepStrengthState extends State<_StepStrength> {
               hintText: '예: 아이와 잘 놀아주고, 병원 동행도 꼼꼼하게 할 수 있어요',
             ),
           ),
-          const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: widget.isLoading
-                  ? Container(
-                      height: 60,
-                      decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(18)),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                              width: 20, height: 20,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2)),
-                          SizedBox(width: 10),
-                          Text('AI 분석 중...',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700)),
-                        ],
-                      ),
-                    )
-                  : AppButton(
-                      text: '태그 생성',
-                      onTap: () {
-                        final phone = _phoneController.text.trim();
-                        final text = _textController.text.trim();
-                        if (phone.isEmpty || text.isEmpty) return;
-                        widget.onNext(phone, text);
-                      },
-                    ),
+          const SizedBox(height: 24), // 여유 공간 확보
+          Center(
+            child: GestureDetector(
+              onTap: _toggleListening,
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: _isListening ? AppColors.primary : AppColors.border,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isListening ? Icons.mic : Icons.mic_none,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
             ),
-          ]),
+          ),
+          const SizedBox(height: 20),
+          const Center(
+            child: Text(
+              '말하면 강점이 자동으로 입력됩니다',
+              style: TextStyle(fontSize: 13, color: AppColors.subText),
+            ),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: widget.isLoading
+                    ? Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'AI 분석 중...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : AppButton(
+                        text: '태그 생성',
+                        onTap: () {
+                          final phone = _phoneController.text.trim();
+                          final text = _textController.text.trim();
+                          if (phone.isEmpty || text.isEmpty) return;
+                          widget.onNext(phone, text);
+                        },
+                      ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -641,8 +914,10 @@ class _StepPreview extends StatelessWidget {
         children: [
           const _StepTitle('AI 태그를\n만들었어요'),
           const SizedBox(height: 8),
-          const Text('아래 프로필로 공고를 추천받게 돼요',
-              style: TextStyle(fontSize: 15, color: AppColors.subText)),
+          const Text(
+            '아래 프로필로 공고를 추천받게 돼요',
+            style: TextStyle(fontSize: 15, color: AppColors.subText),
+          ),
           const SizedBox(height: 28),
           Container(
             width: double.infinity,
@@ -654,41 +929,57 @@ class _StepPreview extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  width: 90, height: 90,
+                  width: 90,
+                  height: 90,
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18)),
-                  child: const Icon(Icons.person,
-                      size: 48, color: AppColors.primary),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 14),
-                Text(name,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('$gender · $birthYear년생',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
-                if (town.isNotEmpty &&
-                    town != '자주 가는 위치를 지정해주세요') ...[
+                Text(
+                  '$gender · $birthYear년생',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                if (town.isNotEmpty && town != '자주 가는 위치를 지정해주세요') ...[
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.place_outlined,
-                          color: Colors.white70, size: 14),
+                      const Icon(
+                        Icons.place_outlined,
+                        color: Colors.white70,
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
-                      Text(town,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13)),
+                      Text(
+                        town,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ],
                 const SizedBox(height: 16),
                 Wrap(
-                  spacing: 8, runSpacing: 8,
+                  spacing: 8,
+                  runSpacing: 8,
                   alignment: WrapAlignment.center,
                   children: tags.map((t) => TagChip(label: t)).toList(),
                 ),
@@ -696,13 +987,20 @@ class _StepPreview extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(
-                text: isLoading ? '가입 중...' : '가입 완료',
-                onTap: isLoading ? () {} : onSubmit)),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(text: '이전', filled: false, onTap: onBack),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: isLoading ? '가입 중...' : '가입 완료',
+                  onTap: isLoading ? () {} : onSubmit,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),

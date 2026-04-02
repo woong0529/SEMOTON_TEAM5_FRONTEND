@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const SeeNearApp());
 }
 
