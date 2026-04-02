@@ -80,7 +80,7 @@ class AuthService {
     required String authCode,
     List<String>? tags,
     String? bioSummary,
-    String? town,
+    required List<Map<String, dynamic>> locations,
   }) async {
     try {
       final res = await http.post(
@@ -95,15 +95,7 @@ class AuthService {
           'bio_summary': bioSummary ?? '',
           'tags': tags ?? [],
           'profile_icon': 'default_icon',
-          'locations': [
-            {
-              'location_name':
-                  (town != null && town.isNotEmpty) ? town : '기본 거점',
-              'latitude': 37.5665,
-              'longitude': 126.9780,
-              'is_primary': true,
-            }
-          ],
+          'locations': locations,
         }),
       );
       final body = jsonDecode(res.body);

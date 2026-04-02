@@ -23,6 +23,7 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
   int _birthYear = 1960;
   String _phone = '';
   String _town = '자주 가는 위치를 지정해주세요';
+  List<PlaceModel> _selectedPlaces = []; // 백엔드 전송용 리스트 추가
   String _strengthText = '';
   List<String> _aiTags = [];
   bool _isGeneratingTags = false;
@@ -64,6 +65,22 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
 
   Future<void> _submit() async {
     setState(() => _isSubmitting = true);
+    final locationsData = _selectedPlaces.map((p) => {
+      'location_name': p.name,
+      'latitude': p.latitude,
+      'longitude': p.longitude,
+      'is_primary': p.isPrimary,
+    }).toList();
+
+    final finalLocations = locationsData.isNotEmpty 
+      ? locationsData 
+      : [{
+          'location_name': '기본 거점',
+          'latitude': 37.5665,
+          'longitude': 126.9780,
+          'is_primary': true,
+        }];
+
     final res = await AuthService.signupSenior(
       phoneNumber: _phone,
       name: _name,
@@ -72,7 +89,7 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
       authCode: _authCode,
       tags: _aiTags,
       bioSummary: _strengthText,
-      town: _town == '자주 가는 위치를 지정해주세요' ? '' : _town,
+      locations: finalLocations,
     );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -116,7 +133,17 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
                       onBack: _prev),
                   _StepLocation(
                     town: _town,
-                    onTownChanged: (t) => setState(() => _town = t),
+                    onLocationChanged: (List<PlaceModel> places) {
+                      setState(() {
+                        _selectedPlaces = places;
+                        if (places.isNotEmpty) {
+                          final primary = places.firstWhere((p) => p.isPrimary, orElse: () => places.first);
+                          _town = places.length > 1 ? "${primary.name} 외 ${places.length - 1}곳" : primary.name;
+                        } else {
+                          _town = '';
+                        }
+                      });
+                    },
                     onNext: _next,
                     onBack: _prev,
                   ),
@@ -411,12 +438,12 @@ class _StepBirthYearState extends State<_StepBirthYear> {
 // Step 4: 위치 선택
 class _StepLocation extends StatefulWidget {
   final String town;
-  final void Function(String) onTownChanged;
+  final void Function(List<PlaceModel>) onLocationChanged;
   final VoidCallback onNext;
   final VoidCallback onBack;
   const _StepLocation({
     required this.town,
-    required this.onTownChanged,
+    required this.onLocationChanged,
     required this.onNext,
     required this.onBack,
   });
@@ -426,13 +453,6 @@ class _StepLocation extends StatefulWidget {
 }
 
 class _StepLocationState extends State<_StepLocation> {
-  late String _selectedLocation;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedLocation = widget.town;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -448,23 +468,24 @@ class _StepLocationState extends State<_StepLocation> {
           ),
           const SizedBox(height: 32),
           AppButton(
-            text: _selectedLocation,
+            text: widget.town,
             filled: false,
             onTap: () async {
-              final result = await Navigator.push(
+              final List<PlaceModel>? result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const LocationSelectionScreen(),
                 ),
               );
-              if (result != null) {
-                setState(() => _selectedLocation = result as String);
-                widget.onTownChanged(result as String);
+              if (result != null && result.isNotEmpty) {
+                setState(() {
+                  widget.onLocationChanged(result);
+                });
               }
             },
           ),
           const SizedBox(height: 12),
-          if (_selectedLocation != '자주 가는 위치를 지정해주세요')
+          if (widget.town != '자주 가는 위치를 지정해주세요')
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -478,7 +499,7 @@ class _StepLocationState extends State<_StepLocation> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      _selectedLocation,
+                      widget.town,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
