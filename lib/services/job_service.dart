@@ -4,7 +4,6 @@ import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class JobService {
-  // 에뮬레이터 사용 시 10.0.2.2, 실제 기기 사용 시 서버 IP로 변경 필요
   static const String _base = 'http://localhost:8000';
 
   static Future<Map<String, String>> _headers() async {
@@ -15,15 +14,15 @@ class JobService {
     };
   }
 
-  // [추가] 시니어 맞춤형 추천 공고 목록 조회
+  // [롤백] 시니어 맞춤형 추천 공고 목록 조회 (성별 필터 제거)
   static Future<ApiResponse<List<Map<String, dynamic>>>> getRecommendedJobs({
     int rangeM = 15000,
   }) async {
     try {
-      final res = await http.get(
-        Uri.parse('$_base/api/search/jobs?range_m=$rangeM'),
-        headers: await _headers(),
-      );
+      // gender 파라미터를 제거하고 range_m만 전달합니다.
+      final uri = Uri.parse('$_base/api/search/jobs?range_m=$rangeM');
+
+      final res = await http.get(uri, headers: await _headers());
 
       if (res.statusCode == 200) {
         final list = (jsonDecode(res.body) as List)
@@ -34,6 +33,33 @@ class JobService {
 
       final body = jsonDecode(res.body);
       return ApiResponse.fail(body['detail'] ?? '추천 공고 로드 실패');
+    } catch (e) {
+      return ApiResponse.fail('네트워크 오류: $e');
+    }
+  }
+
+  // [롤백] 요청자가 시니어를 검색할 때 사용 (성별 필터 제거)
+  static Future<ApiResponse<List<Map<String, dynamic>>>> getSeniorsForPost({
+    required String postId,
+    int rangeM = 15000,
+  }) async {
+    try {
+      // gender 파라미터를 제거했습니다.
+      final uri = Uri.parse(
+        '$_base/api/search/seniors/$postId?range_m=$rangeM',
+      );
+
+      final res = await http.get(uri, headers: await _headers());
+
+      if (res.statusCode == 200) {
+        final list = (jsonDecode(res.body) as List)
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+        return ApiResponse.ok(list);
+      }
+
+      final body = jsonDecode(res.body);
+      return ApiResponse.fail(body['detail'] ?? '시니어 검색 실패');
     } catch (e) {
       return ApiResponse.fail('네트워크 오류: $e');
     }
