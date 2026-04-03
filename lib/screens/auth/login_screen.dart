@@ -17,27 +17,16 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _Logo(),
-              const SizedBox(height: 20),
-              const Text(
-                '시니어와\n가까운 도움을\n연결해요',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3,
-                  color: AppColors.text,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                '도움을 주고, 도움을 받고,\n따뜻한 연결이 시작되는 곳',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColors.subText,
-                  height: 1.6,
-                ),
-              ),
+              
               const Spacer(),
+              Center(
+                child: Image.asset(
+                  'assets/logo.png',
+                  height: 120,
+                  width: 120,
+                ),
+              ),
+              const SizedBox(height: 40),
               Center(
                 child: Text(
                   '처음 오셨나요?',
@@ -195,37 +184,6 @@ class _RoleCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _Logo extends StatelessWidget {
-  const _Logo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(Icons.stars_rounded,
-              color: AppColors.primary, size: 22),
-        ),
-        const SizedBox(width: 10),
-        const Text(
-          'SEE:NEAR',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.2,
-          ),
-        ),
-      ],
     );
   }
 }

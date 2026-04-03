@@ -75,6 +75,7 @@ flutter:
    - assets/naver-icon-style.png
    - assets/google-logo.png
    - assets/leaflet_map.html
+   - assets/logo.png
    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

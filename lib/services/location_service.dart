@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 import '../utils/place_model.dart'; // PlaceModel 임포트 확인
 
 class LocationService {
-  static const _base = 'http://10.0.2.2:8000';
+  static String get _base => dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:8000';
 
 
   static Future<Map<String, String>> _headers() async {
