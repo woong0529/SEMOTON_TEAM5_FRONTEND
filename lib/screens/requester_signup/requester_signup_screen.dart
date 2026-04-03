@@ -390,9 +390,9 @@ class _StepPhoneState extends State<_StepPhone> {
                           return;
                         }
                         
-                        // 숫자만 추출해서 검증
-                        final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
-                        if (digitsOnly.length != 10) {
+                        // 포매팅된 형식 검증 (010-XXXX-XXXX)
+                        final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
+                        if (!phoneRegex.hasMatch(phone)) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
                           );
