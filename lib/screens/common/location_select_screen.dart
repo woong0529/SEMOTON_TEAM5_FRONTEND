@@ -1,20 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import '../../utils/place_model.dart';
+import 'package:see_near_app/widgets/leaflet_map_widget.dart';
 
-class PlaceModel {
-  String name;
-  double latitude;
-  double longitude;
-  bool isPrimary;
-
-  PlaceModel({
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    this.isPrimary = false,
-  });
-}
 
 class LocationSelectionScreen extends StatefulWidget {
   const LocationSelectionScreen({super.key});
@@ -25,13 +12,8 @@ class LocationSelectionScreen extends StatefulWidget {
 }
 
 class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
-  final String kakaoMapKey = 'cf6745f93536af237f2050123f8b0659';
 
   final List<PlaceModel> _selectedPlaces = [];
-
-  double _currentLat = 37.5665;
-  double _currentLng = 126.9780;
-  String _currentMapName = '선택한 위치';
 
   @override
   Widget build(BuildContext context) {
@@ -52,27 +34,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         children: [
           Expanded(
             flex: 4,
-            child: Stack(
-              children: [
-                const Center(
-                  child: Icon(
-                    Icons.location_on,
-                    color: Colors.red,
-                    size: 40,
-                  ),
-                ),
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: FloatingActionButton.extended(
-                    onPressed: _selectedPlaces.length < 3 ? _showAddDialog : null,
-                    backgroundColor:
-                        _selectedPlaces.length < 3 ? Colors.blue : Colors.grey,
-                    label: Text('장소 추가 (${_selectedPlaces.length}/3)'),
-                    icon: const Icon(Icons.add),
-                  ),
-                ),
-              ],
+            child: LeafletMapWidget(
+              onLocationSelected: _handleLocationSelected,
             ),
           ),
           Expanded(
@@ -139,151 +102,23 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     );
   }
 
-  void _handleMapTapMessage(message) {
-    try {
-      final decoded = jsonDecode(message.message);
-      if (decoded is Map<String, dynamic>) {
-        final tappedLat = (decoded['lat'] as num?)?.toDouble();
-        final tappedLng = (decoded['lng'] as num?)?.toDouble();
-        final tappedName = decoded['name']?.toString();
-
-        setState(() {
-          if (tappedLat != null) {
-            _currentLat = tappedLat;
-          }
-          if (tappedLng != null) {
-            _currentLng = tappedLng;
-          }
-          _currentMapName =
-              (tappedName != null && tappedName.isNotEmpty)
-                  ? tappedName
-                  : '선택한 위치';
-        });
-        return;
-      }
-    } catch (_) {
-      // Ignore malformed messages and fall back to the default label.
+  void _handleLocationSelected(String address, double lat, double lng) {
+    if (_selectedPlaces.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('장소는 최대 3개까지만 등록 가능합니다.')));
+      return;
     }
 
     setState(() {
-      _currentMapName = '선택한 위치';
+      _selectedPlaces.add(PlaceModel(
+        name: address,
+        latitude: lat,
+        longitude: lng,
+        isPrimary: _selectedPlaces.isEmpty, // 첫 번째 장소면 자동 대표
+      ));
     });
   }
 
-  String _buildKakaoMapScript() {
-    return '''
-const zoomControl = new kakao.maps.ZoomControl();
-map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
 
-const mapTypeControl = new kakao.maps.MapTypeControl();
-map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
-
-const serviceScript = document.createElement('script');
-serviceScript.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=$kakaoMapKey&libraries=services';
-serviceScript.onload = function() {
-  const attachTapListener = function(geocoder) {
-    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-      const lat = mouseEvent.latLng.getLat();
-      const lng = mouseEvent.latLng.getLng();
-
-      map.setCenter(new kakao.maps.LatLng(lat, lng));
-
-      if (geocoder) {
-        geocoder.coord2Address(lng, lat, function(result, status) {
-          let placeName = '선택한 위치';
-
-          if (status === kakao.maps.services.Status.OK && result.length > 0) {
-            const item = result[0];
-            if (item.road_address && item.road_address.address_name) {
-              placeName = item.road_address.address_name;
-            } else if (item.address && item.address.address_name) {
-              placeName = item.address.address_name;
-            }
-          }
-
-          onTapMarker.postMessage(JSON.stringify({
-            lat: lat,
-            lng: lng,
-            name: placeName
-          }));
-        });
-        return;
-      }
-
-      onTapMarker.postMessage(JSON.stringify({
-        lat: lat,
-        lng: lng,
-        name: '선택한 위치'
-      }));
-    });
-  };
-
-  if (kakao.maps.services && kakao.maps.services.Geocoder) {
-    attachTapListener(new kakao.maps.services.Geocoder());
-  } else {
-    attachTapListener(null);
-  }
-};
-
-serviceScript.onerror = function() {
-  kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-    const lat = mouseEvent.latLng.getLat();
-    const lng = mouseEvent.latLng.getLng();
-
-    map.setCenter(new kakao.maps.LatLng(lat, lng));
-
-    onTapMarker.postMessage(JSON.stringify({
-      lat: lat,
-      lng: lng,
-      name: '선택한 위치'
-    }));
-  });
-};
-
-document.head.appendChild(serviceScript);
-''';
-  }
-
-  void _showAddDialog() {
-    TextEditingController nameController =
-        TextEditingController(text: _currentMapName);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('장소 추가'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('선택한 장소의 이름을 확인하거나 수정해주세요.'),
-            TextField(controller: nameController),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _selectedPlaces.add(
-                  PlaceModel(
-                    name: nameController.text,
-                    latitude: _currentLat,
-                    longitude: _currentLng,
-                    isPrimary: _selectedPlaces.isEmpty,
-                  ),
-                );
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('목록에 추가'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _setPrimaryPlace(int index) {
     setState(() {

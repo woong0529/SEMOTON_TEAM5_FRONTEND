@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../widgets/app_button.dart';
 import '../../utils/place_model.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-
-
-
+import 'package:see_near_app/widgets/leaflet_map_widget.dart';
 
 
 class JobLocationPicker extends StatefulWidget {
@@ -18,7 +14,17 @@ class JobLocationPicker extends StatefulWidget {
 
 class _JobLocationPickerState extends State<JobLocationPicker> {
   PlaceModel? _selectedPlace; // 단 하나만 저장
-  final String kakaoApiKey = dotenv.get('KAKAO_JAVASCRIPT_KEY');
+
+  void _handleLocationSelected(String address, double lat, double lng) {
+    setState(() {
+      _selectedPlace = PlaceModel(
+        name: address,
+        latitude: lat,
+        longitude: lng,
+        isPrimary: true, // 단일 선택이므로 항상 primary
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +43,9 @@ class _JobLocationPickerState extends State<JobLocationPicker> {
           Expanded(
             child: Stack(
               children: [
+                LeafletMapWidget(
+                  onLocationSelected: _handleLocationSelected,
+                ),
                 
                 // 지도가 비어있을 때 안내 문구
                 if (_selectedPlace == null)

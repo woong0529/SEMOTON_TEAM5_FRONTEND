@@ -6,6 +6,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/tag_chip.dart';
 import '../common/location_select_screen.dart';
 import '../home/senior_home_screen.dart';
+import '../../utils/place_model.dart';
 
 class SeniorSignupScreen extends StatefulWidget {
   const SeniorSignupScreen({super.key});

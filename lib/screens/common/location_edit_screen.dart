@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../utils/place_model.dart';
 import '../../services/location_service.dart'; // LocationService 임포트 확인
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:see_near_app/widgets/leaflet_map_widget.dart';
 
 
 
@@ -21,9 +20,6 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
   late List<PlaceModel> _editingLocations;
   bool _isSaving = false;
   
-  // 카카오 API 키 (본인의 JS 키 입력)
-  final String kakaoApiKey = dotenv.get('KAKAO_JAVASCRIPT_KEY');
-
   @override
   void initState() {
     super.initState();
@@ -78,9 +74,12 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
       ),
       body: Column(
         children: [
-          // 1. 카카오맵 영역
+          // 1. 지도 영역 (LeafletMapWidget)
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.4,
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: LeafletMapWidget(
+              onLocationSelected: _handleLocationSelected,
+            ),
           ),
           
           const Padding(
@@ -103,37 +102,21 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     );
   }
 
-  // 장소 추가 확인 다이얼로그
-  void _confirmAddPlace(String address, double lat, double lng) {
+  // 지도에서 위치 선택 시 호출
+  void _handleLocationSelected(String address, double lat, double lng) {
     if (_editingLocations.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('장소는 최대 3개까지만 등록 가능합니다.')));
       return;
     }
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('장소 추가'),
-        content: Text('"$address"\n이 위치를 활동 거점으로 추가할까요?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _editingLocations.add(PlaceModel(
-                  name: address,
-                  latitude: lat,
-                  longitude: lng,
-                  isPrimary: _editingLocations.isEmpty, // 첫 번째 장소면 자동 대표
-                ));
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('추가'),
-          ),
-        ],
-      ),
-    );
+    setState(() {
+      _editingLocations.add(PlaceModel(
+        name: address,
+        latitude: lat,
+        longitude: lng,
+        isPrimary: _editingLocations.isEmpty, // 첫 번째 장소면 자동 대표
+      ));
+    });
   }
 
   // 리스트 빌더 위젯

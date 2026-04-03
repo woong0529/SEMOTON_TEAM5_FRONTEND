@@ -45,6 +45,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   speech_to_text: ^7.3.0
+  webview_flutter: ^4.13.1
+  webview_flutter_android: ^4.10.15
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +74,7 @@ flutter:
   assets:
    - assets/naver-icon-style.png
    - assets/google-logo.png
+   - assets/leaflet_map.html
    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

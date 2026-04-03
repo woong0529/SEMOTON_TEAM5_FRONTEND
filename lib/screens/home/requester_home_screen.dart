@@ -8,6 +8,8 @@ import '../../widgets/tag_chip.dart';
 import '../auth/login_screen.dart';
 import 'job_detail_screen.dart';
 import 'notification_screen.dart';
+import '../common/job_location_screen.dart';
+import '../../utils/place_model.dart';
 
 class RequesterHomeScreen extends StatefulWidget {
   const RequesterHomeScreen({super.key});
@@ -377,7 +379,7 @@ class _PostCreatePageState extends State<_PostCreatePage> {
   final _titleController = TextEditingController();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();
-  final _locationController = TextEditingController();
+  PlaceModel? _selectedLocation;
   final _rewardController = TextEditingController();
   final _contentController = TextEditingController();
   String _selectedCategory = '#병원동행';
@@ -388,10 +390,26 @@ class _PostCreatePageState extends State<_PostCreatePage> {
     '#강아지산책', '#아이돌봄', '#관공서동행',
   ];
 
+  Future<void> _selectLocation() async {
+    final selected = await Navigator.push<PlaceModel>(
+      context,
+      MaterialPageRoute(builder: (_) => const JobLocationPicker()),
+    );
+    if (selected != null) {
+      setState(() => _selectedLocation = selected);
+    }
+  }
+
   Future<void> _submit() async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('제목을 입력해주세요')),
+      );
+      return;
+    }
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('위치를 선택해주세요')),
       );
       return;
     }
@@ -406,9 +424,9 @@ class _PostCreatePageState extends State<_PostCreatePage> {
       startTime: _timeController.text.isEmpty
           ? '09:00:00'
           : '${_timeController.text}:00',
-      locationName: _locationController.text.isEmpty
-          ? '미정'
-          : _locationController.text,
+      locationName: _selectedLocation!.name,
+      latitude: _selectedLocation!.latitude,
+      longitude: _selectedLocation!.longitude,
       reward: int.tryParse(_rewardController.text) ?? 0,
     );
     if (!mounted) return;
@@ -420,7 +438,7 @@ class _PostCreatePageState extends State<_PostCreatePage> {
     if (res.success) {
       _titleController.clear();
       _contentController.clear();
-      _locationController.clear();
+      _selectedLocation = null;
       _rewardController.clear();
       _dateController.clear();
       _timeController.clear();
@@ -456,9 +474,31 @@ class _PostCreatePageState extends State<_PostCreatePage> {
                 labelText: '시작 시간', hintText: '14:00'),
           ),
           const SizedBox(height: 12),
-          TextField(
-              controller: _locationController,
-              decoration: const InputDecoration(labelText: '위치')),
+          ElevatedButton(
+            onPressed: _selectLocation,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primarySoft,
+              foregroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.place),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _selectedLocation?.name ?? '위치 선택',
+                    style: const TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 16),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _rewardController,
