@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:math';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
@@ -642,6 +644,24 @@ class _StepStrengthState extends State<_StepStrength> {
   late stt.SpeechToText _speech;
   bool _speechEnabled = false;
 
+  String _formatPhoneNumber(String input) {
+    String digits = input.replaceAll(RegExp(r'\D'), '');
+    if (digits.length > 11) digits = digits.substring(0, 11);
+    
+    String formatted = '';
+    if (digits.length >= 1) {
+      formatted = digits.substring(0, min(3, digits.length));
+    }
+    if (digits.length >= 4) {
+      formatted += '-' + digits.substring(3, min(7, digits.length));
+    }
+    if (digits.length > 7) {
+      formatted += '-' + digits.substring(7);
+    }
+    
+    return formatted;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -704,9 +724,21 @@ class _StepStrengthState extends State<_StepStrength> {
           TextField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            onChanged: (value) {
+              String formatted = _formatPhoneNumber(value);
+              if (formatted != value) {
+                _phoneController.value = TextEditingValue(
+                  text: formatted,
+                  selection: TextSelection.collapsed(offset: formatted.length),
+                );
+              }
+            },
             decoration: const InputDecoration(
               labelText: '전화번호',
-              hintText: '010-1234-5678',
+              hintText: '01012345678',
             ),
           ),
           const SizedBox(height: 20),
@@ -807,9 +839,9 @@ class _StepStrengthState extends State<_StepStrength> {
                             return;
                           }
                           
-                          // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
-                          final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
-                          if (!phoneRegex.hasMatch(phone)) {
+                          // 숫자만 추출해서 검증
+                          final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
+                          if (digitsOnly.length != 10) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
                             );
@@ -906,9 +938,14 @@ class _StepPreview extends StatelessWidget {
                       const Icon(Icons.place_outlined,
                           color: Colors.white70, size: 14),
                       const SizedBox(width: 4),
-                      Text(town,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13)),
+                      Expanded(
+                        child: Text(town,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            textAlign: TextAlign.center),
+                      ),
                     ],
                   ),
                 ],

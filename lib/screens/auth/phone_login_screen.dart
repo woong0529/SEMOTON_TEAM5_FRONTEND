@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:math';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import 'otp_verify_screen.dart';
@@ -13,6 +15,24 @@ class PhoneLoginScreen extends StatefulWidget {
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final _controller = TextEditingController();
   bool _isLoading = false;
+
+  String _formatPhoneNumber(String input) {
+    String digits = input.replaceAll(RegExp(r'\D'), '');
+    if (digits.length > 11) digits = digits.substring(0, 11);
+    
+    String formatted = '';
+    if (digits.length >= 1) {
+      formatted = digits.substring(0, min(3, digits.length));
+    }
+    if (digits.length >= 4) {
+      formatted += '-' + digits.substring(3, min(7, digits.length));
+    }
+    if (digits.length > 7) {
+      formatted += '-' + digits.substring(7);
+    }
+    
+    return formatted;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +77,20 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     child: TextField(
                       controller: _controller,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      onChanged: (value) {
+                        String formatted = _formatPhoneNumber(value);
+                        if (formatted != value) {
+                          _controller.value = TextEditingValue(
+                            text: formatted,
+                            selection: TextSelection.collapsed(offset: formatted.length),
+                          );
+                        }
+                      },
                       decoration:
-                          const InputDecoration(hintText: '010-2345-6789'),
+                          const InputDecoration(hintText: '01023456789'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -111,9 +143,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       return;
     }
 
-    // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
-    final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
-    if (!phoneRegex.hasMatch(phone)) {
+    // 숫자만 추출해서 검증
+    final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
       );
