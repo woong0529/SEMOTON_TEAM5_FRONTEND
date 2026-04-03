@@ -5,7 +5,7 @@ import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class MatchingService {
-  static String get _base => dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:8000';
+  static String get _base => dotenv.env['BASE_URL'] ?? 'http://172.21.113.16:8000';
 
 
   static Future<Map<String, String>> _headers() async {

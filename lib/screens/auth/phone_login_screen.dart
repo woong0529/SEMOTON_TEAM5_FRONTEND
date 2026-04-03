@@ -104,7 +104,22 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   Future<void> _sendOtp() async {
     final phone = _controller.text.trim();
-    if (phone.isEmpty) return;
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('전화번호를 입력해주세요')),
+      );
+      return;
+    }
+
+    // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
+    final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     final res = await AuthService.requestOtp(phone);
     setState(() => _isLoading = false);

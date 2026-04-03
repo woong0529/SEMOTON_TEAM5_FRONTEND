@@ -4,7 +4,7 @@ import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class NotificationService {
-  static const _base = 'http://10.0.2.2:8000';
+  static const _base = 'http://172.21.113.16:8000';
 
 
   static Future<Map<String, String>> _headers() async {

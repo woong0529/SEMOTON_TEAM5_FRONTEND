@@ -6,7 +6,7 @@ import '../utils/token_storage.dart';
 import '../utils/place_model.dart'; // PlaceModel 임포트 확인
 
 class LocationService {
-  static String get _base => dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:8000';
+  static String get _base => dotenv.env['BASE_URL'] ?? 'http://172.21.113.16:8000';
 
 
   static Future<Map<String, String>> _headers() async {

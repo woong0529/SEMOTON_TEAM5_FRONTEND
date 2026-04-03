@@ -306,42 +306,29 @@ class _StepNameState extends State<_StepName> {
   Future<void> _initSpeech() async {
     _speechEnabled = await _speech.initialize(
       onStatus: (status) {
-        if (!mounted) return;
         if (status == 'notListening' && _isListening) {
           setState(() => _isListening = false);
         }
       },
       onError: (error) {
-        if (!mounted) return;
         setState(() => _isListening = false);
       },
     );
-    if (!mounted) return;
     setState(() {});
   }
 
   void _toggleListening() async {
-    if (!_speechEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('마이크 권한이 필요합니다. 설정에서 허용해주세요.')),
-        );
-      }
-      return;
-    }
+    if (!_speechEnabled) return;
     if (_isListening) {
       await _speech.stop();
-      if (!mounted) return;
       setState(() => _isListening = false);
       return;
     }
 
-    if (!mounted) return;
     setState(() => _isListening = true);
     await _speech.listen(
       localeId: 'ko_KR',
       onResult: (result) {
-        if (!mounted) return;
         setState(() {
           _controller.text = result.recognizedWords;
           _controller.selection = TextSelection.fromPosition(
@@ -349,18 +336,15 @@ class _StepNameState extends State<_StepName> {
           );
         });
       },
-      cancelOnError: true,
     );
   }
 
   @override
   void dispose() {
     _speech.stop();
-    _speech.cancel();
     _controller.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -373,23 +357,56 @@ class _StepNameState extends State<_StepName> {
           TextField(
             controller: _controller,
             autofocus: true,
-            decoration: InputDecoration(
-              hintText: '홍길동',
-              suffixIcon: IconButton(
-                icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                onPressed: _toggleListening,
+            decoration: const InputDecoration(hintText: '홍길동'),
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: GestureDetector(
+              onTap: _toggleListening,
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: _isListening ? AppColors.primary : AppColors.border,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isListening ? Icons.mic : Icons.mic_none,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
+          const SizedBox(height: 20),
+          const Center(
+            child: Text(
+              '말하면 이름을 자동으로 입력합니다',
+              style: TextStyle(fontSize: 13, color: AppColors.subText),
+            ),
+          ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () {
-              if (_controller.text.trim().isEmpty) return;
-              widget.onNext(_controller.text.trim());
-            })),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () {
+                    if (_controller.text.trim().isEmpty) return;
+                    widget.onNext(_controller.text.trim());
+                  },
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -582,6 +599,8 @@ class _StepLocationState extends State<_StepLocation> {
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -600,13 +619,17 @@ class _StepLocationState extends State<_StepLocation> {
   }
 }
 
+
 // Step 5: 강점 입력
 class _StepStrength extends StatefulWidget {
   final void Function(String phone, String text) onNext;
   final VoidCallback onBack;
   final bool isLoading;
-  const _StepStrength(
-      {required this.onNext, required this.onBack, required this.isLoading});
+  const _StepStrength({
+    required this.onNext,
+    required this.onBack,
+    required this.isLoading,
+  });
 
   @override
   State<_StepStrength> createState() => _StepStrengthState();
@@ -629,42 +652,29 @@ class _StepStrengthState extends State<_StepStrength> {
   Future<void> _initSpeech() async {
     _speechEnabled = await _speech.initialize(
       onStatus: (status) {
-        if (!mounted) return;
         if (status == 'notListening' && _isListening) {
           setState(() => _isListening = false);
         }
       },
       onError: (error) {
-        if (!mounted) return;
         setState(() => _isListening = false);
       },
     );
-    if (!mounted) return;
     setState(() {});
   }
 
   void _toggleListening() async {
-    if (!_speechEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('마이크 권한이 필요합니다. 설정에서 허용해주세요.')),
-        );
-      }
-      return;
-    }
+    if (!_speechEnabled) return;
     if (_isListening) {
       await _speech.stop();
-      if (!mounted) return;
       setState(() => _isListening = false);
       return;
     }
 
-    if (!mounted) return;
     setState(() => _isListening = true);
     await _speech.listen(
       localeId: 'ko_KR',
       onResult: (result) {
-        if (!mounted) return;
         setState(() {
           _textController.text = result.recognizedWords;
           _textController.selection = TextSelection.fromPosition(
@@ -672,19 +682,16 @@ class _StepStrengthState extends State<_StepStrength> {
           );
         });
       },
-      cancelOnError: true,
     );
   }
 
   @override
   void dispose() {
     _speech.stop();
-    _speech.cancel();
     _phoneController.dispose();
     _textController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -698,63 +705,131 @@ class _StepStrengthState extends State<_StepStrength> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
-                labelText: '전화번호', hintText: '010-1234-5678'),
+              labelText: '전화번호',
+              hintText: '010-1234-5678',
+            ),
           ),
           const SizedBox(height: 20),
-          const Text('어떤 일을 잘 하시나요?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const Text(
+            '어떤 일을 잘 하시나요?',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
-          const Text('AI가 자동으로 태그를 만들어드려요',
-              style: TextStyle(fontSize: 14, color: AppColors.subText)),
+          const Text(
+            'AI가 자동으로 태그를 만들어드려요',
+            style: TextStyle(fontSize: 14, color: AppColors.subText),
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _textController,
             maxLines: 4,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: '예: 아이와 잘 놀아주고, 병원 동행도 꼼꼼하게 할 수 있어요',
-              suffixIcon: IconButton(
-                icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                onPressed: _toggleListening,
+            ),
+          ),
+          const SizedBox(height: 24), // 여유 공간 확보
+          Center(
+            child: GestureDetector(
+              onTap: _toggleListening,
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: _isListening ? AppColors.primary : AppColors.border,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isListening ? Icons.mic : Icons.mic_none,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-          const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: widget.isLoading
-                  ? Container(
-                      height: 60,
-                      decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(18)),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                              width: 20, height: 20,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2)),
-                          SizedBox(width: 10),
-                          Text('AI 분석 중...',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700)),
-                        ],
-                      ),
-                    )
-                  : AppButton(
-                      text: '태그 생성',
-                      onTap: () {
-                        final phone = _phoneController.text.trim();
-                        final text = _textController.text.trim();
-                        if (phone.isEmpty || text.isEmpty) return;
-                        widget.onNext(phone, text);
-                      },
-                    ),
+          const SizedBox(height: 20),
+          const Center(
+            child: Text(
+              '말하면 강점이 자동으로 입력됩니다',
+              style: TextStyle(fontSize: 13, color: AppColors.subText),
             ),
-          ]),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: widget.isLoading
+                    ? Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'AI 분석 중...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : AppButton(
+                        text: '태그 생성',
+                        onTap: () {
+                          final phone = _phoneController.text.trim();
+                          final text = _textController.text.trim();
+                          
+                          if (phone.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('전화번호를 입력해주세요')),
+                            );
+                            return;
+                          }
+                          
+                          // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
+                          final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
+                          if (!phoneRegex.hasMatch(phone)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
+                            );
+                            return;
+                          }
+                          
+                          if (text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('강점을 입력해주세요')),
+                            );
+                            return;
+                          }
+                          
+                          widget.onNext(phone, text);
+                          widget.onNext(phone, text);
+                        },
+                      ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),

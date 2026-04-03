@@ -350,8 +350,24 @@ class _StepPhoneState extends State<_StepPhone> {
                   : AppButton(
                       text: '가입 완료',
                       onTap: () {
-                        if (_controller.text.trim().isEmpty) return;
-                        widget.onNext(_controller.text.trim());
+                        final phone = _controller.text.trim();
+                        if (phone.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('전화번호를 입력해주세요')),
+                          );
+                          return;
+                        }
+                        
+                        // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
+                        final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
+                        if (!phoneRegex.hasMatch(phone)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
+                          );
+                          return;
+                        }
+                        
+                        widget.onNext(phone);
                       },
                     ),
             ),

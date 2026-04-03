@@ -76,6 +76,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                   subtitle: Text(
                                     place.isPrimary ? '주요 장소' : '일반 장소',

@@ -149,7 +149,12 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
                 });
               },
             ),
-            title: Text(place.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            title: Text(
+              place.name, 
+              style: const TextStyle(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
             subtitle: Text(place.isPrimary ? '주요 거점' : '활동 거점', style: TextStyle(color: place.isPrimary ? AppColors.primary : AppColors.subText)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),

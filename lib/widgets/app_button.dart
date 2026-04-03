@@ -43,12 +43,15 @@ class AppButton extends StatelessWidget {
               Image.asset(assetPath!, width: 24, height: 24),
               const SizedBox(width: 10),
             ],
-          Text(
-          text,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,),
-          ),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ],
         ),
       ),

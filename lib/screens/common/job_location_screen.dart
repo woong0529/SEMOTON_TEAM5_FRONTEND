@@ -15,7 +15,14 @@ class JobLocationPicker extends StatefulWidget {
 class _JobLocationPickerState extends State<JobLocationPicker> {
   PlaceModel? _selectedPlace; // 단 하나만 저장
 
+  @override
+  void initState() {
+    super.initState();
+    print('🎯 JobLocationPicker 화면 진입');
+  }
+
   void _handleLocationSelected(String address, double lat, double lng) {
+    print('✅ _handleLocationSelected 호출됨: $address, $lat, $lng');
     setState(() {
       _selectedPlace = PlaceModel(
         name: address,
@@ -23,7 +30,16 @@ class _JobLocationPickerState extends State<JobLocationPicker> {
         longitude: lng,
         isPrimary: true, // 단일 선택이므로 항상 primary
       );
+      print('✅ _selectedPlace 업데이트됨: ${_selectedPlace?.name}');
     });
+  }
+
+  void _confirmLocation() {
+    print('✅ _confirmLocation 호출됨, _selectedPlace: ${_selectedPlace?.name}');
+    if (_selectedPlace != null) {
+      print('✅ Navigator.pop 실행: ${_selectedPlace?.name}');
+      Navigator.pop(context, _selectedPlace);
+    }
   }
 
   @override
@@ -95,6 +111,7 @@ class _JobLocationPickerState extends State<JobLocationPicker> {
                           _selectedPlace?.name ?? "지도를 클릭해주세요",
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
@@ -102,7 +119,7 @@ class _JobLocationPickerState extends State<JobLocationPicker> {
                   const SizedBox(height: 24),
                   AppButton(
                     text: '이 위치로 확정하기',
-                    onTap: (_selectedPlace == null ? () {} : () =>Navigator.pop(context, _selectedPlace)) // 선택 안 되면 버튼 비활성화
+                    onTap: _selectedPlace == null ? () {} : _confirmLocation,
                   ),
                 ],
               ),

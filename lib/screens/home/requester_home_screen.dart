@@ -493,6 +493,7 @@ class _PostCreatePageState extends State<_PostCreatePage> {
                     _selectedLocation?.name ?? '위치 선택',
                     style: const TextStyle(fontSize: 16),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios, size: 16),
