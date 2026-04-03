@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../utils/token_storage.dart';
-import '../utils/place_model.dart';
+import '../utils/place_model.dart'; // PlaceModel 임포트 확인
 
 class LocationService {
   static const _base = 'http://10.0.2.2:8000';

@@ -60,3 +60,5 @@ lib/screens/senior_signup/senior_intro_screen.dart
 lib/screens/senior_signup/senior_signup_screen.dart
 lib/widgets/app_button.dart
 lib/widgets/tag_chip.dart
+
+.env

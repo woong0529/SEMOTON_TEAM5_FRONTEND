@@ -4,7 +4,10 @@ import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../utils/place_model.dart';
-import '../../services/location_service.dart';
+import '../../services/location_service.dart'; // LocationService 임포트 확인
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+
 
 
 class LocationEditScreen extends StatefulWidget {
@@ -20,9 +23,9 @@ class LocationEditScreen extends StatefulWidget {
 class _LocationEditScreenState extends State<LocationEditScreen> {
   late List<PlaceModel> _editingLocations;
   bool _isSaving = false;
-
+  
   // 카카오 API 키 (본인의 JS 키 입력)
-  final String kakaoApiKey = "YOUR_JAVASCRIPT_APP_KEY";
+  final String kakaoApiKey = dotenv.get('KAKAO_JAVASCRIPT_KEY');
 
   @override
   void initState() {
@@ -34,15 +37,15 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
   // 서버에 수정된 리스트 저장
   Future<void> _handleSave() async {
     if (_editingLocations.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('최소 한 개의 위치는 지정해야 합니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('최소 한 개의 위치는 지정해야 합니다.')),
+      );
       return;
     }
 
     setState(() => _isSaving = true);
 
-    // 서비스 호출 (LocationService에 updateLocations 함수가 있다고 가정)
+    // 서비스 호출 (LocationService에 updateMyLocations 함수가 있다고 가정)
     final res = await LocationService.updateMyLocations(_editingLocations);
 
     if (!mounted) return;
@@ -51,9 +54,9 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     if (res.success) {
       Navigator.pop(context, _editingLocations); // 수정된 데이터 들고 복귀
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(res.error ?? '저장 실패')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(res.error ?? '저장 실패')),
+      );
     }
   }
 
@@ -62,30 +65,17 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          '활동 거점 수정',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('활동 거점 수정', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           if (_isSaving)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
             )
           else
             TextButton(
               onPressed: _handleSave,
-              child: const Text(
-                '저장',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: const Text('저장', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
         ],
       ),
@@ -107,23 +97,22 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
               },
             ),
           ),
-
+          
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Row(
               children: [
                 Icon(Icons.info_outline, size: 16, color: AppColors.subText),
                 SizedBox(width: 4),
-                Text(
-                  '지도를 탭하여 새 장소를 추가하세요 (최대 3개)',
-                  style: TextStyle(fontSize: 13, color: AppColors.subText),
-                ),
+                Text('지도를 탭하여 새 장소를 추가하세요 (최대 3개)', style: TextStyle(fontSize: 13, color: AppColors.subText)),
               ],
             ),
           ),
 
           // 2. 편집 리스트 영역
-          Expanded(child: _buildLocationList()),
+          Expanded(
+            child: _buildLocationList(),
+          ),
         ],
       ),
     );
@@ -132,9 +121,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
   // 장소 추가 확인 다이얼로그
   void _confirmAddPlace(String address, double lat, double lng) {
     if (_editingLocations.length >= 3) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('장소는 최대 3개까지만 등록 가능합니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('장소는 최대 3개까지만 등록 가능합니다.')));
       return;
     }
 
@@ -144,21 +131,16 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
         title: const Text('장소 추가'),
         content: Text('"$address"\n이 위치를 활동 거점으로 추가할까요?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
           TextButton(
             onPressed: () {
               setState(() {
-                _editingLocations.add(
-                  PlaceModel(
-                    name: address,
-                    latitude: lat,
-                    longitude: lng,
-                    isPrimary: _editingLocations.isEmpty, // 첫 번째 장소면 자동 대표
-                  ),
-                );
+                _editingLocations.add(PlaceModel(
+                  name: address,
+                  latitude: lat,
+                  longitude: lng,
+                  isPrimary: _editingLocations.isEmpty, // 첫 번째 장소면 자동 대표
+                ));
               });
               Navigator.pop(context);
             },
@@ -174,26 +156,18 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _editingLocations.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final place = _editingLocations[index];
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: place.isPrimary ? AppColors.primary : Colors.transparent,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-            ],
+            border: Border.all(color: place.isPrimary ? AppColors.primary : Colors.transparent, width: 2),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             leading: IconButton(
               icon: Icon(
                 place.isPrimary ? Icons.stars_rounded : Icons.stars_outlined,
@@ -202,23 +176,13 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
               ),
               onPressed: () {
                 setState(() {
-                  for (var p in _editingLocations) {
-                    p.isPrimary = false;
-                  }
+                  for (var p in _editingLocations) { p.isPrimary = false; }
                   place.isPrimary = true;
                 });
               },
             ),
-            title: Text(
-              place.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              place.isPrimary ? '주요 거점' : '활동 거점',
-              style: TextStyle(
-                color: place.isPrimary ? AppColors.primary : AppColors.subText,
-              ),
-            ),
+            title: Text(place.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(place.isPrimary ? '주요 거점' : '활동 거점', style: TextStyle(color: place.isPrimary ? AppColors.primary : AppColors.subText)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: () {

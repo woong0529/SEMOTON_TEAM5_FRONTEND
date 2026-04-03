@@ -2,20 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:kakaomap_webview/kakaomap_webview.dart';
 import '../../core/app_colors.dart';
 import '../../widgets/app_button.dart';
+import '../../utils/place_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class PlaceModel {
-  String name;
-  double latitude;
-  double longitude;
-  bool isPrimary;
 
-  PlaceModel({
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    this.isPrimary = false,
-  });
-}
+
 
 
 
@@ -28,7 +19,7 @@ class JobLocationPicker extends StatefulWidget {
 
 class _JobLocationPickerState extends State<JobLocationPicker> {
   PlaceModel? _selectedPlace; // 단 하나만 저장
-  final String kakaoApiKey = "YOUR_JAVASCRIPT_APP_KEY";
+  final String kakaoApiKey = dotenv.get('KAKAO_JAVASCRIPT_KEY');
 
   @override
   Widget build(BuildContext context) {

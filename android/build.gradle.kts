@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
+
 allprojects {
     repositories {
         google()
@@ -17,6 +19,13 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    plugins.withId("com.android.library") {
+        if (name == "webview_flutter_android") {
+            extensions.configure<LibraryExtension>("android") {
+                namespace = "io.flutter.plugins.webviewflutter"
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
