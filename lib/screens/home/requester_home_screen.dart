@@ -10,6 +10,7 @@ import 'job_detail_screen.dart';
 import 'notification_screen.dart';
 import '../common/job_location_screen.dart';
 import '../../utils/place_model.dart';
+import 'recommend_screen.dart';
 
 class RequesterHomeScreen extends StatefulWidget {
   const RequesterHomeScreen({super.key});
@@ -26,8 +27,8 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _RecommendPage(onGoToPost: () => setState(() => _currentIndex = 1)),
-      const _PostCreatePage(),
+      SeniorSearchPage(onGoToPost: () => setState(() => _currentIndex = 1)),
+      const PostCreatePage(),
       const _MatchingPage(),
       _MyPage(onGoHome: _goHome),
     ];
@@ -93,289 +94,148 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
 }
 
 // ── 추천 페이지 ────────────────────────────────────────────
-class _RecommendPage extends StatefulWidget {
+class SeniorSearchPage extends StatefulWidget {
+  const SeniorSearchPage({required this.onGoToPost, super.key});
   final VoidCallback onGoToPost;
-  const _RecommendPage({required this.onGoToPost});
 
   @override
-  State<_RecommendPage> createState() => _RecommendPageState();
+  State<SeniorSearchPage> createState() => _SeniorSearchPageState();
 }
 
-class _RecommendPageState extends State<_RecommendPage> {
-  int _cardIndex = 0;
-  Map<String, dynamic>? _profile;
-  List<Map<String, dynamic>> _myPosts = [];
-  bool _isLoading = true;
+class _SeniorSearchPageState extends State<SeniorSearchPage> {
+  // 상태 관리 변수
+  String _selectedGender = '전체'; // 기본값 '전체'
+  String? _selectedCategory; // 선택된 카테고리 (없을 수 있음)
 
-  final List<Map<String, dynamic>> _seniors = [
-    {
-      'user_id': 'senior-001',
-      'name': '최재철',
-      'trust_score': 86,
-      'bio_summary': '아이 돌봄과 반려동물 케어에 자신 있어요',
-      'tags': ['#강아지산책', '#병원동행', '#말벗'],
-      'gender': '남성',
-    },
-    {
-      'user_id': 'senior-002',
-      'name': '이순자',
-      'trust_score': 91,
-      'bio_summary': '청소와 장보기, 말벗을 잘 할 수 있어요',
-      'tags': ['#청소', '#장보기대행', '#말벗'],
-      'gender': '여성',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final profileRes = await AuthService.getMe();
-    final postsRes = await JobService.getMyJobs();
-    if (mounted) {
-      setState(() {
-        _profile = profileRes.data;
-        _myPosts = postsRes.data ?? [];
-        _isLoading = false;
-      });
-    }
-  }
+  final List<String> _genders = ['전체', '남성', '여성'];
+  final List<String> _categories = ['말벗', '산책', '병원동행', '식사보조', '운동', '등산'];
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
-    }
-
-    final nickname = _profile?['nickname'] ?? '요청자';
-
-    // 공고가 없으면 안내 화면
-    if (_myPosts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 100, height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Icon(Icons.edit_document,
-                    size: 52, color: AppColors.primary),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                '공고를 먼저 작성해주세요!',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                '공고를 등록하면\n딱 맞는 시니어를 추천해드려요',
-                style: TextStyle(
-                    fontSize: 15,
-                    color: AppColors.subText,
-                    height: 1.6),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              AppButton(
-                text: '공고 작성하러 가기',
-                onTap: widget.onGoToPost,
-              ),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        title: const Text(
+          '시니어 검색',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-      );
-    }
-
-    final senior = _seniors[_cardIndex % _seniors.length];
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('$nickname님께\n추천 시니어예요',
-              style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3)),
-          const SizedBox(height: 24),
-          Expanded(
-            child: Center(
-              child: GestureDetector(
-                onHorizontalDragEnd: (d) {
-                  if ((d.primaryVelocity ?? 0) < -300) {
-                    setState(() => _cardIndex++);
-                  } else if ((d.primaryVelocity ?? 0) > 300) {
-                    _proposeMatch(context, senior);
-                  }
-                },
-                child: _SeniorCard(
-                  senior: senior,
-                  onSkip: () => setState(() => _cardIndex++),
-                  onPropose: () => _proposeMatch(context, senior),
-                ),
+        actions: [
+          // 기존 추천 페이지로 이동하는 버튼
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecommendScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.auto_awesome,
+                size: 18,
+                color: Colors.blueAccent,
+              ),
+              label: const Text(
+                'AI 추천',
+                style: TextStyle(color: Colors.blueAccent),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          const Center(
-            child: Text('← 넘기기   |   제안하기 →',
-                style: TextStyle(fontSize: 13, color: AppColors.subText)),
-          ),
-          const SizedBox(height: 12),
         ],
       ),
-    );
-  }
-
-  void _proposeMatch(BuildContext context, Map<String, dynamic> senior) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('매칭 제안'),
-        content: Text('${senior['name']}님께 매칭을 제안할까요?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final postId = _myPosts.isNotEmpty
-                  ? _myPosts.first['post_id']?.toString() ?? 'post-001'
-                  : 'post-001';
-              await MatchingService.proposeMatch(
-                postId: postId,
-                seniorId: senior['user_id'] as String,
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${senior['name']}님께 제안했어요')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. 성별 선택 섹션
+            const Text(
+              '성별',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              children: _genders.map((gender) {
+                final isSel = _selectedGender == gender;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedGender = gender),
+                  child: TagChip(label: gender, highlighted: isSel),
                 );
-              }
-            },
-            child: const Text('제안하기'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+              }).toList(),
+            ),
 
-class _SeniorCard extends StatelessWidget {
-  final Map<String, dynamic> senior;
-  final VoidCallback onSkip;
-  final VoidCallback onPropose;
-  const _SeniorCard(
-      {required this.senior, required this.onSkip, required this.onPropose});
+            const SizedBox(height: 32),
 
-  @override
-  Widget build(BuildContext context) {
-    final tags = (senior['tags'] as List?)?.cast<String>() ?? [];
-    return Container(
-      width: 300,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x30FF6B4A),
-              blurRadius: 24,
-              offset: Offset(0, 10)),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 110, height: 110,
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20)),
-            child: const Icon(Icons.person, size: 56, color: AppColors.primary),
-          ),
-          const SizedBox(height: 16),
-          Text(senior['name'] as String,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          Text('신뢰 점수 ${senior['trust_score']}점',
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
-          Text(senior['bio_summary'] as String,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 14, height: 1.5)),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: tags.map((t) => TagChip(label: t)).toList(),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onSkip,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white54),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+            // 2. 카테고리 선택 섹션
+            const Text(
+              '카테고리',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _categories.map((cat) {
+                final isSel = _selectedCategory == cat;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      // 이미 선택된 걸 누르면 해제, 아니면 선택
+                      _selectedCategory = isSel ? null : cat;
+                    });
+                  },
+                  child: TagChip(label: cat, highlighted: isSel),
+                );
+              }).toList(),
+            ),
+
+            const Spacer(),
+
+            // 3. 검색 버튼
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  print('🔍 검색: 성별=$_selectedGender, 카테고리=$_selectedCategory');
+                  // 여기에 API 호출 로직 추가 (필터 데이터 전달)
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text('넘기기'),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  '검색하기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onPropose,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: const Text('제안하기',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ── 공고 작성 ──────────────────────────────────────────────
-class _PostCreatePage extends StatefulWidget {
-  const _PostCreatePage();
+class PostCreatePage extends StatefulWidget {
+  const PostCreatePage();
 
   @override
-  State<_PostCreatePage> createState() => _PostCreatePageState();
+  State<PostCreatePage> createState() => _PostCreatePageState();
 }
 
-class _PostCreatePageState extends State<_PostCreatePage> {
+class _PostCreatePageState extends State<PostCreatePage> {
   final _titleController = TextEditingController();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();

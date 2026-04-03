@@ -7,53 +7,69 @@ import 'phone_login_screen.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+  static const String _logoPath = 'assets/logo/seenear_logo.png';
+  static const String _requesterImagePath =
+      'assets/onboarding/requester_card.png';
+  static const String _seniorImagePath = 'assets/onboarding/senior_card.png';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF6F4F3),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               const Spacer(),
               Center(
                 child: Image.asset(
-                  'assets/logo.png',
-                  height: 120,
-                  width: 120,
+                  _logoPath,
+                  width: 210,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.image_not_supported_outlined, size: 80),
+                      SizedBox(height: 12),
+                      Text('assets/logo/seenear_logo.png 확인'),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 40),
-              Center(
-                child: Text(
-                  '처음 오셨나요?',
-                  style: TextStyle(fontSize: 14, color: AppColors.subText),
+              const SizedBox(height: 78),
+              const Text(
+                '처음 오셨나요?',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.subText,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 14),
-              _BigButton(
+              const SizedBox(height: 10),
+              _MainActionButton(
                 text: '회원가입 하기',
                 filled: true,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const RoleSelectScreen()),
+                    builder: (_) => const RoleSelectScreen(
+                      requesterImagePath: _requesterImagePath,
+                      seniorImagePath: _seniorImagePath,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              _BigButton(
+              _MainActionButton(
                 text: '로그인하러 가기',
                 filled: false,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const PhoneLoginScreen()),
+                  MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 34),
             ],
           ),
         ),
@@ -62,53 +78,70 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-// ── 역할 선택 (카드형 스타일) ──────────────────────────────
 class RoleSelectScreen extends StatelessWidget {
-  const RoleSelectScreen({super.key});
+  final String requesterImagePath;
+  final String seniorImagePath;
+
+  const RoleSelectScreen({
+    super.key,
+    required this.requesterImagePath,
+    required this.seniorImagePath,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF6F4F3),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const BackButton(),
-              const SizedBox(height: 10),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                  color: AppColors.subText,
+                ),
+              ),
+              const SizedBox(height: 18),
               const Text(
                 '어떤 역할로\n시작할까요?',
                 style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  height: 1.25,
+                  fontSize: 27,
+                  fontWeight: FontWeight.w900,
+                  height: 1.18,
+                  color: AppColors.text,
                 ),
               ),
-              const Spacer(),
-              _RoleCard(
-                title: '도움을 받으러 오셨나요?',
+              const SizedBox(height: 22),
+              _RoleImageCard(
+                badgeText: '도움받기 >',
+                title: '도움을 받으러\n오셨나요?',
                 subtitle: '공고를 작성하고 시니어를 추천받아요',
-                icon: Icons.favorite_border,
+                imagePath: requesterImagePath,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const RequesterSignupScreen()),
+                    builder: (_) => const RequesterSignupScreen(),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-              _RoleCard(
-                title: '도움을 주러 오셨나요?',
+              const SizedBox(height: 18),
+              _RoleImageCard(
+                badgeText: '도움주기 >',
+                title: '도움을 주러\n오셨나요?',
                 subtitle: '시니어로 가입하고 공고를 확인해요',
-                icon: Icons.volunteer_activism_outlined,
+                imagePath: seniorImagePath,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const SeniorIntroScreen()),
+                  MaterialPageRoute(builder: (_) => const SeniorIntroScreen()),
                 ),
               ),
-              const Spacer(),
             ],
           ),
         ),
@@ -117,106 +150,143 @@ class RoleSelectScreen extends StatelessWidget {
   }
 }
 
-class _RoleCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
+class _MainActionButton extends StatelessWidget {
+  final String text;
+  final bool filled;
   final VoidCallback onTap;
 
-  const _RoleCard({
+  const _MainActionButton({
+    required this.text,
+    required this.filled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          elevation: filled ? 0 : 3,
+          shadowColor: filled ? Colors.transparent : Colors.black12,
+          backgroundColor: filled ? AppColors.primary : const Color(0xFFF1F1F1),
+          foregroundColor: filled ? Colors.white : Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleImageCard extends StatelessWidget {
+  final String badgeText;
+  final String title;
+  final String subtitle;
+  final String imagePath;
+  final VoidCallback onTap;
+
+  const _RoleImageCard({
+    required this.badgeText,
     required this.title,
     required this.subtitle,
-    required this.icon,
+    required this.imagePath,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        height: 126,
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 0),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x12000000),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.primary, width: 1.2),
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primarySoft,
-              child: Icon(icon, color: AppColors.primary, size: 28),
-            ),
-            const SizedBox(width: 18),
             Expanded(
+              flex: 11,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      height: 1.12,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.subText,
-                      height: 1.4,
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.95),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.subText),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BigButton extends StatelessWidget {
-  final String text;
-  final bool filled;
-  final VoidCallback onTap;
-  const _BigButton(
-      {required this.text, required this.filled, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 60,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: filled ? AppColors.primary : Colors.white,
-          foregroundColor: filled ? Colors.white : AppColors.text,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(
-              color: filled ? AppColors.primary : AppColors.border,
-              width: 1.5,
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 9,
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: Image.asset(
+                  imagePath,
+                  height: 118,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox(
+                    child: Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.white,
+                        size: 34,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          ],
         ),
       ),
     );
