@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // 1. 포매터 사용을 위해 추가
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
@@ -23,20 +24,24 @@ class _RequesterSignupScreenState extends State<RequesterSignupScreen> {
 
   void _next() {
     _pageController.nextPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage++);
   }
 
   void _prev() {
     _pageController.previousPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage--);
   }
 
   Future<void> _submit() async {
     setState(() => _isSubmitting = true);
     final res = await AuthService.signupRequester(
-      phoneNumber: _phone,
+      phoneNumber: _phone, // 여기서 하이픈이 포함된 _phone이 백엔드로 전달됩니다.
       nickname: _name,
       gender: _gender,
       birthYear: _birthYear,
@@ -50,9 +55,9 @@ class _RequesterSignupScreenState extends State<RequesterSignupScreen> {
         (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.error ?? '가입 실패')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.error ?? '가입 실패')));
     }
   }
 
@@ -72,13 +77,19 @@ class _RequesterSignupScreenState extends State<RequesterSignupScreen> {
                   _StepField(
                     title: '이름을\n입력해주세요',
                     hint: '홍길동',
-                    onNext: (v) { _name = v; _next(); },
+                    onNext: (v) {
+                      _name = v;
+                      _next();
+                    },
                     showBack: false,
                     onBack: () {},
                   ),
                   _StepGender(
                     selected: _gender,
-                    onNext: (g) { _gender = g; _next(); },
+                    onNext: (g) {
+                      _gender = g;
+                      _next();
+                    },
                     onBack: _prev,
                   ),
                   _StepField(
@@ -94,7 +105,10 @@ class _RequesterSignupScreenState extends State<RequesterSignupScreen> {
                     onBack: _prev,
                   ),
                   _StepPhone(
-                    onNext: (phone) { _phone = phone; _submit(); },
+                    onNext: (phone) {
+                      _phone = phone;
+                      _submit();
+                    },
                     onBack: _prev,
                     isLoading: _isSubmitting,
                   ),
@@ -107,6 +121,8 @@ class _RequesterSignupScreenState extends State<RequesterSignupScreen> {
     );
   }
 }
+
+// --- 공통 위젯들 (ProgressBar, StepWrapper 등은 그대로 유지) ---
 
 class _ProgressBar extends StatelessWidget {
   final int current;
@@ -158,10 +174,15 @@ class _StepTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 28, fontWeight: FontWeight.w800,
-            height: 1.3, color: AppColors.text));
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        height: 1.3,
+        color: AppColors.text,
+      ),
+    );
   }
 }
 
@@ -190,6 +211,12 @@ class _StepFieldState extends State<_StepField> {
   final _controller = TextEditingController();
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _StepWrapper(
       child: Column(
@@ -204,17 +231,29 @@ class _StepFieldState extends State<_StepField> {
             decoration: InputDecoration(hintText: widget.hint),
           ),
           const Spacer(),
-          Row(children: [
-            if (widget.showBack) ...[
-              Expanded(child: AppButton(
-                  text: '이전', filled: false, onTap: widget.onBack)),
-              const SizedBox(width: 12),
+          Row(
+            children: [
+              if (widget.showBack) ...[
+                Expanded(
+                  child: AppButton(
+                    text: '이전',
+                    filled: false,
+                    onTap: widget.onBack,
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () {
+                    if (_controller.text.trim().isEmpty) return;
+                    widget.onNext(_controller.text.trim());
+                  },
+                ),
+              ),
             ],
-            Expanded(child: AppButton(text: '다음', onTap: () {
-              if (_controller.text.trim().isEmpty) return;
-              widget.onNext(_controller.text.trim());
-            })),
-          ]),
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -226,8 +265,11 @@ class _StepGender extends StatefulWidget {
   final String selected;
   final void Function(String) onNext;
   final VoidCallback onBack;
-  const _StepGender(
-      {required this.selected, required this.onNext, required this.onBack});
+  const _StepGender({
+    required this.selected,
+    required this.onNext,
+    required this.onBack,
+  });
 
   @override
   State<_StepGender> createState() => _StepGenderState();
@@ -263,15 +305,18 @@ class _StepGenderState extends State<_StepGender> {
                       color: sel ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
                     child: Center(
-                      child: Text(g,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: sel ? Colors.white : AppColors.text,
-                          )),
+                      child: Text(
+                        g,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: sel ? Colors.white : AppColors.text,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -279,13 +324,24 @@ class _StepGenderState extends State<_StepGender> {
             }).toList(),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(
-                text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(
-                text: '다음', onTap: () => widget.onNext(_selected))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () => widget.onNext(_selected),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -293,12 +349,16 @@ class _StepGenderState extends State<_StepGender> {
   }
 }
 
+// --- 수정된 _StepPhone 부분 ---
 class _StepPhone extends StatefulWidget {
   final void Function(String) onNext;
   final VoidCallback onBack;
   final bool isLoading;
-  const _StepPhone(
-      {required this.onNext, required this.onBack, required this.isLoading});
+  const _StepPhone({
+    required this.onNext,
+    required this.onBack,
+    required this.isLoading,
+  });
 
   @override
   State<_StepPhone> createState() => _StepPhoneState();
@@ -306,6 +366,12 @@ class _StepPhone extends StatefulWidget {
 
 class _StepPhoneState extends State<_StepPhone> {
   final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -318,63 +384,116 @@ class _StepPhoneState extends State<_StepPhone> {
           TextField(
             controller: _controller,
             keyboardType: TextInputType.phone,
+            autofocus: true,
+            // 2. 자동 하이픈 및 입력 제한 추가
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+              PhoneNumberFormatter(),
+            ],
             decoration: const InputDecoration(hintText: '010-1234-5678'),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(
-                text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: widget.isLoading
-                  ? Container(
-                      height: 60,
-                      decoration: BoxDecoration(
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: widget.isLoading
+                    ? Container(
+                        height: 60,
+                        decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(18)),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                              width: 20, height: 20,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2)),
-                          SizedBox(width: 10),
-                          Text('가입 중...',
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              '가입 중...',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700)),
-                        ],
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : AppButton(
+                        text: '가입 완료',
+                        onTap: () {
+                          final phone = _controller.text.trim();
+                          if (phone.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('전화번호를 입력해주세요')),
+                            );
+                            return;
+                          }
+
+                          final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
+                          if (!phoneRegex.hasMatch(phone)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  '전화번호는 010-XXXX-XXXX 형식으로 입력해주세요',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          widget.onNext(phone); // 하이픈이 포함된 번호를 전달합니다.
+                        },
                       ),
-                    )
-                  : AppButton(
-                      text: '가입 완료',
-                      onTap: () {
-                        final phone = _controller.text.trim();
-                        if (phone.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('전화번호를 입력해주세요')),
-                          );
-                          return;
-                        }
-                        
-                        // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
-                        final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
-                        if (!phoneRegex.hasMatch(phone)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
-                          );
-                          return;
-                        }
-                        
-                        widget.onNext(phone);
-                      },
-                    ),
-            ),
-          ]),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+}
+
+// 3. 하이픈 자동 삽입 포매터 클래스
+class PhoneNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    String formatted = "";
+
+    if (text.length >= 1) {
+      formatted += text.substring(0, text.length >= 3 ? 3 : text.length);
+    }
+    if (text.length >= 4) {
+      formatted += "-${text.substring(3, text.length >= 7 ? 7 : text.length)}";
+    }
+    if (text.length >= 8) {
+      formatted +=
+          "-${text.substring(7, text.length >= 11 ? 11 : text.length)}";
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

@@ -17,14 +17,9 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               const Spacer(),
               Center(
-                child: Image.asset(
-                  'assets/logo.png',
-                  height: 120,
-                  width: 120,
-                ),
+                child: Image.asset('assets/logo.png', height: 120, width: 120),
               ),
               const SizedBox(height: 40),
               Center(
@@ -39,8 +34,7 @@ class LoginScreen extends StatelessWidget {
                 filled: true,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const RoleSelectScreen()),
+                  MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
                 ),
               ),
               const SizedBox(height: 12),
@@ -49,8 +43,7 @@ class LoginScreen extends StatelessWidget {
                 filled: false,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const PhoneLoginScreen()),
+                  MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
                 ),
               ),
               const SizedBox(height: 20),
@@ -94,7 +87,8 @@ class RoleSelectScreen extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const RequesterSignupScreen()),
+                    builder: (_) => const RequesterSignupScreen(),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -104,8 +98,7 @@ class RoleSelectScreen extends StatelessWidget {
                 icon: Icons.volunteer_activism_outlined,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const SeniorIntroScreen()),
+                  MaterialPageRoute(builder: (_) => const SeniorIntroScreen()),
                 ),
               ),
               const Spacer(),
@@ -192,8 +185,11 @@ class _BigButton extends StatelessWidget {
   final String text;
   final bool filled;
   final VoidCallback onTap;
-  const _BigButton(
-      {required this.text, required this.filled, required this.onTap});
+  const _BigButton({
+    required this.text,
+    required this.filled,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

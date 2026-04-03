@@ -10,6 +10,7 @@ import 'job_detail_screen.dart';
 import 'notification_screen.dart';
 import '../common/job_location_screen.dart';
 import '../../utils/place_model.dart';
+import 'job_create_screen.dart';
 
 class RequesterHomeScreen extends StatefulWidget {
   const RequesterHomeScreen({super.key});
@@ -27,7 +28,13 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       _RecommendPage(onGoToPost: () => setState(() => _currentIndex = 1)),
-      const _PostCreatePage(),
+      JobCreateScreen(
+        onSuccess: () {
+          setState(() {
+            _currentIndex = 0; // 등록 성공 시 '추천' 탭으로 이동
+          });
+        },
+      ),
       const _MatchingPage(),
       _MyPage(onGoHome: _goHome),
     ];
@@ -41,20 +48,27 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
           child: Row(
             children: [
               Container(
-                width: 30, height: 30,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.stars_rounded,
-                    color: AppColors.primary, size: 18),
+                child: const Icon(
+                  Icons.stars_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 8),
-              const Text('SEE:NEAR',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: 1.1)),
+              const Text(
+                'SEE:NEAR',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 1.1,
+                ),
+              ),
             ],
           ),
         ),
@@ -64,7 +78,8 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const NotificationScreen(isSenior: false)),
+                builder: (_) => const NotificationScreen(isSenior: false),
+              ),
             ),
           ),
         ],
@@ -79,13 +94,21 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
         onTap: (i) => setState(() => _currentIndex = i),
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_outline), label: '추천'),
+            icon: Icon(Icons.favorite_outline),
+            label: '추천',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.edit_document), label: '공고 작성'),
+            icon: Icon(Icons.edit_document),
+            label: '공고 작성',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_outlined), label: '매칭'),
+            icon: Icon(Icons.assignment_outlined),
+            label: '매칭',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: '마이페이지'),
+            icon: Icon(Icons.person_outline),
+            label: '마이페이지',
+          ),
         ],
       ),
     );
@@ -148,7 +171,8 @@ class _RecommendPageState extends State<_RecommendPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
 
     final nickname = _profile?['nickname'] ?? '요청자';
@@ -162,35 +186,36 @@ class _RecommendPageState extends State<_RecommendPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 100, height: 100,
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(Icons.edit_document,
-                    size: 52, color: AppColors.primary),
+                child: const Icon(
+                  Icons.edit_document,
+                  size: 52,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 24),
               const Text(
                 '공고를 먼저 작성해주세요!',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               const Text(
                 '공고를 등록하면\n딱 맞는 시니어를 추천해드려요',
                 style: TextStyle(
-                    fontSize: 15,
-                    color: AppColors.subText,
-                    height: 1.6),
+                  fontSize: 15,
+                  color: AppColors.subText,
+                  height: 1.6,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              AppButton(
-                text: '공고 작성하러 가기',
-                onTap: widget.onGoToPost,
-              ),
+              AppButton(text: '공고 작성하러 가기', onTap: widget.onGoToPost),
             ],
           ),
         ),
@@ -204,11 +229,14 @@ class _RecommendPageState extends State<_RecommendPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$nickname님께\n추천 시니어예요',
-              style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3)),
+          Text(
+            '$nickname님께\n추천 시니어예요',
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              height: 1.3,
+            ),
+          ),
           const SizedBox(height: 24),
           Expanded(
             child: Center(
@@ -230,8 +258,10 @@ class _RecommendPageState extends State<_RecommendPage> {
           ),
           const SizedBox(height: 12),
           const Center(
-            child: Text('← 넘기기   |   제안하기 →',
-                style: TextStyle(fontSize: 13, color: AppColors.subText)),
+            child: Text(
+              '← 넘기기   |   제안하기 →',
+              style: TextStyle(fontSize: 13, color: AppColors.subText),
+            ),
           ),
           const SizedBox(height: 12),
         ],
@@ -247,8 +277,9 @@ class _RecommendPageState extends State<_RecommendPage> {
         content: Text('${senior['name']}님께 매칭을 제안할까요?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -277,8 +308,11 @@ class _SeniorCard extends StatelessWidget {
   final Map<String, dynamic> senior;
   final VoidCallback onSkip;
   final VoidCallback onPropose;
-  const _SeniorCard(
-      {required this.senior, required this.onSkip, required this.onPropose});
+  const _SeniorCard({
+    required this.senior,
+    required this.onSkip,
+    required this.onPropose,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -291,41 +325,56 @@ class _SeniorCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x30FF6B4A),
-              blurRadius: 24,
-              offset: Offset(0, 10)),
+            color: Color(0x30FF6B4A),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 110, height: 110,
+            width: 110,
+            height: 110,
             decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: const Icon(Icons.person, size: 56, color: AppColors.primary),
           ),
           const SizedBox(height: 16),
-          Text(senior['name'] as String,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800)),
+          Text(
+            senior['name'] as String,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text('신뢰 점수 ${senior['trust_score']}점',
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            '신뢰 점수 ${senior['trust_score']}점',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 12),
-          Text(senior['bio_summary'] as String,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 14, height: 1.5)),
+          Text(
+            senior['bio_summary'] as String,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
           const SizedBox(height: 16),
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             alignment: WrapAlignment.center,
             children: tags.map((t) => TagChip(label: t)).toList(),
           ),
@@ -339,7 +388,8 @@ class _SeniorCard extends StatelessWidget {
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white54),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   child: const Text('넘기기'),
                 ),
@@ -352,11 +402,14 @@ class _SeniorCard extends StatelessWidget {
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     elevation: 0,
                   ),
-                  child: const Text('제안하기',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    '제안하기',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
@@ -366,180 +419,7 @@ class _SeniorCard extends StatelessWidget {
     );
   }
 }
-
 // ── 공고 작성 ──────────────────────────────────────────────
-class _PostCreatePage extends StatefulWidget {
-  const _PostCreatePage();
-
-  @override
-  State<_PostCreatePage> createState() => _PostCreatePageState();
-}
-
-class _PostCreatePageState extends State<_PostCreatePage> {
-  final _titleController = TextEditingController();
-  final _dateController = TextEditingController();
-  final _timeController = TextEditingController();
-  PlaceModel? _selectedLocation;
-  final _rewardController = TextEditingController();
-  final _contentController = TextEditingController();
-  String _selectedCategory = '#병원동행';
-  bool _isSubmitting = false;
-
-  final List<String> _categories = [
-    '#집밥제조', '#장보기대행', '#청소', '#병원동행', '#말벗',
-    '#강아지산책', '#아이돌봄', '#관공서동행',
-  ];
-
-  Future<void> _selectLocation() async {
-    final selected = await Navigator.push<PlaceModel>(
-      context,
-      MaterialPageRoute(builder: (_) => const JobLocationPicker()),
-    );
-    if (selected != null) {
-      setState(() => _selectedLocation = selected);
-    }
-  }
-
-  Future<void> _submit() async {
-    if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목을 입력해주세요')),
-      );
-      return;
-    }
-    if (_selectedLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('위치를 선택해주세요')),
-      );
-      return;
-    }
-    setState(() => _isSubmitting = true);
-    final res = await JobService.createJob(
-      title: _titleController.text,
-      content: _contentController.text,
-      categoryTag: _selectedCategory,
-      jobDate: _dateController.text.isEmpty
-          ? DateTime.now().toIso8601String().substring(0, 10)
-          : _dateController.text,
-      startTime: _timeController.text.isEmpty
-          ? '09:00:00'
-          : '${_timeController.text}:00',
-      locationName: _selectedLocation!.name,
-      latitude: _selectedLocation!.latitude,
-      longitude: _selectedLocation!.longitude,
-      reward: int.tryParse(_rewardController.text) ?? 0,
-    );
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(res.success ? '공고가 등록되었어요' : res.error ?? '등록 실패')),
-    );
-    if (res.success) {
-      _titleController.clear();
-      _contentController.clear();
-      _selectedLocation = null;
-      _rewardController.clear();
-      _dateController.clear();
-      _timeController.clear();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('도움받기\n공고 작성',
-              style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3)),
-          const SizedBox(height: 20),
-          TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: '제목')),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _dateController,
-            decoration: const InputDecoration(
-                labelText: '날짜', hintText: '2026-04-01'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _timeController,
-            decoration: const InputDecoration(
-                labelText: '시작 시간', hintText: '14:00'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _selectLocation,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primarySoft,
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.place),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _selectedLocation?.name ?? '위치 선택',
-                    style: const TextStyle(fontSize: 16),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                const Icon(Icons.arrow_forward_ios, size: 16),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _rewardController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: '보수 (원)'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _contentController,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '구체적인 요청 사항',
-              hintText: '어떤 도움이 필요한지 자세히 적어주세요',
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text('카테고리 선택',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            children: _categories.map((cat) {
-              final sel = _selectedCategory == cat;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedCategory = cat),
-                child: TagChip(label: cat, highlighted: sel),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          AppButton(
-            text: _isSubmitting ? '등록 중...' : '공고 등록',
-            onTap: _isSubmitting ? () {} : _submit,
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-}
 
 // ── 매칭 조회 ──────────────────────────────────────────────
 class _MatchingPage extends StatefulWidget {
@@ -574,69 +454,84 @@ class _MatchingPageState extends State<_MatchingPage> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('매칭 조회',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+        const Text(
+          '매칭 조회',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 16),
         if (_isLoading)
           const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
+            child: CircularProgressIndicator(color: AppColors.primary),
+          )
         else if (_matched.isEmpty)
           Center(
             child: Padding(
               padding: const EdgeInsets.all(40),
               child: Column(
                 children: [
-                  Icon(Icons.assignment_outlined,
-                      size: 56, color: AppColors.border),
+                  Icon(
+                    Icons.assignment_outlined,
+                    size: 56,
+                    color: AppColors.border,
+                  ),
                   const SizedBox(height: 16),
-                  const Text('진행 중인 매칭이 없어요',
-                      style: TextStyle(color: AppColors.subText)),
+                  const Text(
+                    '진행 중인 매칭이 없어요',
+                    style: TextStyle(color: AppColors.subText),
+                  ),
                 ],
               ),
             ),
           )
         else
-          ..._matched.map((match) => Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Color(0x0F000000),
-                        blurRadius: 14,
-                        offset: Offset(0, 6)),
-                  ],
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: Container(
-                    width: 44, height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.handshake_outlined,
-                        color: AppColors.primary),
+          ..._matched.map(
+            (match) => Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0F000000),
+                    blurRadius: 14,
+                    offset: Offset(0, 6),
                   ),
-                  title: Text(
-                      match['post_id']?.toString() ?? '매칭된 공고',
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: Text('상태: ${match['status'] ?? ''}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => JobDetailScreen(
-                        post: match,
-                        showDecisionButtons: true,
-                        isSenior: false,
-                        matchId: match['match_id']?.toString(),
-                      ),
-                    ),
+                ],
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.handshake_outlined,
+                    color: AppColors.primary,
                   ),
                 ),
-              )),
+                title: Text(
+                  match['post_id']?.toString() ?? '매칭된 공고',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                subtitle: Text('상태: ${match['status'] ?? ''}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => JobDetailScreen(
+                      post: match,
+                      showDecisionButtons: true,
+                      isSenior: false,
+                      matchId: match['match_id']?.toString(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -684,9 +579,9 @@ class _MyPageState extends State<_MyPage> {
     });
     if (mounted) {
       setState(() => _isEditing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로필이 저장되었어요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('프로필이 저장되었어요')));
       _loadProfile();
     }
   }
@@ -695,7 +590,8 @@ class _MyPageState extends State<_MyPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
 
     final nickname = _profile?['nickname'] ?? '요청자';
@@ -725,33 +621,45 @@ class _MyPageState extends State<_MyPage> {
           child: Column(
             children: [
               Container(
-                width: 90, height: 90,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(Icons.person,
-                    size: 50, color: AppColors.primary),
+                child: const Icon(
+                  Icons.person,
+                  size: 50,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 14),
-              Text(nickname,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800)),
+              Text(
+                nickname,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 6),
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.25),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('신뢰 점수 $score점',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700)),
+                child: Text(
+                  '신뢰 점수 $score점',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ),
@@ -762,13 +670,16 @@ class _MyPageState extends State<_MyPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('내 정보',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w800)),
+            const Text(
+              '내 정보',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
             TextButton(
               onPressed: () => setState(() => _isEditing = !_isEditing),
-              child: Text(_isEditing ? '취소' : '수정',
-                  style: const TextStyle(color: AppColors.primary)),
+              child: Text(
+                _isEditing ? '취소' : '수정',
+                style: const TextStyle(color: AppColors.primary),
+              ),
             ),
           ],
         ),
@@ -801,8 +712,10 @@ class _MyPageState extends State<_MyPage> {
 
         const SizedBox(height: 24),
 
-        const Text('내가 올린 공고',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        const Text(
+          '내가 올린 공고',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 12),
         _MyPostsList(),
 
@@ -850,11 +763,14 @@ class _InfoField extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text(label,
-              style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.subText,
-                  fontWeight: FontWeight.w600)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.subText,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -864,13 +780,19 @@ class _InfoField extends StatelessWidget {
                   keyboardType: keyboardType,
                   decoration: const InputDecoration(
                     isDense: true,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                 )
-              : Text(controller.text,
+              : Text(
+                  controller.text,
                   style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600)),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         ),
       ],
     );
@@ -904,9 +826,12 @@ class _MyPostsListState extends State<_MyPostsList> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'OPEN': return AppColors.primary;
-      case 'MATCHED': return AppColors.success;
-      default: return AppColors.subText;
+      case 'OPEN':
+        return AppColors.primary;
+      case 'MATCHED':
+        return AppColors.success;
+      default:
+        return AppColors.subText;
     }
   }
 
@@ -914,7 +839,8 @@ class _MyPostsListState extends State<_MyPostsList> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
     if (_posts.isEmpty) {
       return Container(
@@ -925,50 +851,59 @@ class _MyPostsListState extends State<_MyPostsList> {
           border: Border.all(color: AppColors.border),
         ),
         child: const Center(
-          child: Text('등록한 공고가 없어요',
-              style: TextStyle(color: AppColors.subText)),
+          child: Text(
+            '등록한 공고가 없어요',
+            style: TextStyle(color: AppColors.subText),
+          ),
         ),
       );
     }
     return Column(
       children: _posts
-          .map((item) => Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(item['title'] as String? ?? '',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _statusColor(item['status'] as String? ?? '')
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+          .map(
+            (item) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item['title'] as String? ?? '',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                       ),
-                      child: Text(
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _statusColor(
                         item['status'] as String? ?? '',
-                        style: TextStyle(
-                          color: _statusColor(
-                              item['status'] as String? ?? ''),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
+                      ).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      item['status'] as String? ?? '',
+                      style: TextStyle(
+                        color: _statusColor(item['status'] as String? ?? ''),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
-              ))
+                  ),
+                ],
+              ),
+            ),
+          )
           .toList(),
     );
   }

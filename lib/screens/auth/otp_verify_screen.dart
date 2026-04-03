@@ -69,9 +69,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
         (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.error ?? '인증 실패')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.error ?? '인증 실패')));
     }
   }
 
@@ -94,8 +94,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                   color: AppColors.primarySoft,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.stars_rounded,
-                    color: AppColors.primary, size: 30),
+                child: const Icon(
+                  Icons.stars_rounded,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -110,7 +113,10 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               Text(
                 '${widget.phoneNumber}로 전송된\n6자리 번호를 입력해주세요',
                 style: const TextStyle(
-                    fontSize: 14, color: AppColors.subText, height: 1.6),
+                  fontSize: 14,
+                  color: AppColors.subText,
+                  height: 1.6,
+                ),
               ),
               const SizedBox(height: 36),
               Row(
@@ -126,19 +132,22 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                       textAlign: TextAlign.center,
                       maxLength: 1,
                       style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w800),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
                       decoration: InputDecoration(
                         counterText: '',
                         contentPadding: EdgeInsets.zero,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: AppColors.border),
+                          borderSide: const BorderSide(color: AppColors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                              color: AppColors.primary, width: 2),
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       onChanged: (val) {
@@ -163,8 +172,10 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('인증번호 다시 받기',
-                      style: TextStyle(color: AppColors.subText)),
+                  child: const Text(
+                    '인증번호 다시 받기',
+                    style: TextStyle(color: AppColors.subText),
+                  ),
                 ),
               ),
               const Spacer(),

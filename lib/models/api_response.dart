@@ -3,11 +3,7 @@ class ApiResponse<T> {
   final T? data;
   final String? error;
 
-  ApiResponse.ok(this.data)
-      : success = true,
-        error = null;
+  ApiResponse.ok(this.data) : success = true, error = null;
 
-  ApiResponse.fail(this.error)
-      : success = false,
-        data = null;
+  ApiResponse.fail(this.error) : success = false, data = null;
 }

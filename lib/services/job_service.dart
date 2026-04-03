@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class JobService {
-  static String get _base => dotenv.env['BASE_URL'] ?? 'http://172.21.113.16:8000';
+  // 에뮬레이터 사용 시 10.0.2.2, 실제 기기 사용 시 서버 IP로 변경 필요
+  static const String _base = 'http://localhost:8000';
 
   static Future<Map<String, String>> _headers() async {
     final token = await TokenStorage.getToken();
@@ -15,9 +15,53 @@ class JobService {
     };
   }
 
+  // [추가] 시니어 맞춤형 추천 공고 목록 조회
+  static Future<ApiResponse<List<Map<String, dynamic>>>> getRecommendedJobs({
+    int rangeM = 15000,
+  }) async {
+    try {
+      final res = await http.get(
+        Uri.parse('$_base/api/search/jobs?range_m=$rangeM'),
+        headers: await _headers(),
+      );
+
+      if (res.statusCode == 200) {
+        final list = (jsonDecode(res.body) as List)
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+        return ApiResponse.ok(list);
+      }
+
+      final body = jsonDecode(res.body);
+      return ApiResponse.fail(body['detail'] ?? '추천 공고 로드 실패');
+    } catch (e) {
+      return ApiResponse.fail('네트워크 오류: $e');
+    }
+  }
+
+  // AI 태그 추천 API
+  static Future<ApiResponse<Map<String, dynamic>>> getRecommendedTags({
+    required String title,
+    required String content,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$_base/api/jobs/recommend-tags'),
+        headers: await _headers(),
+        body: jsonEncode({'title': title, 'content': content}),
+      );
+      final body = jsonDecode(res.body);
+      if (res.statusCode == 200) return ApiResponse.ok(body);
+      return ApiResponse.fail(body['detail'] ?? '태그 추천 실패');
+    } catch (e) {
+      return ApiResponse.fail('네트워크 오류: $e');
+    }
+  }
+
   // 공고 상세 조회
   static Future<ApiResponse<Map<String, dynamic>>> getJobDetail(
-      String postId) async {
+    String postId,
+  ) async {
     try {
       final res = await http.get(
         Uri.parse('$_base/api/jobs/$postId'),
@@ -25,13 +69,13 @@ class JobService {
       );
       final body = jsonDecode(res.body);
       if (res.statusCode == 200) return ApiResponse.ok(body);
-      return ApiResponse.fail('상세 조회 실패');
+      return ApiResponse.fail(body['detail'] ?? '상세 조회 실패');
     } catch (e) {
       return ApiResponse.fail('네트워크 오류: $e');
     }
   }
 
-  // 내 공고 목록 (요청자)
+  // 내 공고 목록 조회 (요청자용)
   static Future<ApiResponse<List<Map<String, dynamic>>>> getMyJobs() async {
     try {
       final res = await http.get(
@@ -44,7 +88,8 @@ class JobService {
             .toList();
         return ApiResponse.ok(list);
       }
-      return ApiResponse.fail('내 공고 조회 실패');
+      final body = jsonDecode(res.body);
+      return ApiResponse.fail(body['detail'] ?? '내 공고 조회 실패');
     } catch (e) {
       return ApiResponse.fail('네트워크 오류: $e');
     }
@@ -54,7 +99,8 @@ class JobService {
   static Future<ApiResponse<Map<String, dynamic>>> createJob({
     required String title,
     required String content,
-    required String categoryTag,
+    required List<String> mainTags,
+    required List<String> subTags,
     required String jobDate,
     required String startTime,
     required String locationName,
@@ -70,7 +116,8 @@ class JobService {
         body: jsonEncode({
           'title': title,
           'content': content,
-          'category_tag': categoryTag,
+          'main_tags': mainTags,
+          'sub_tags': subTags,
           'job_date': jobDate,
           'start_time': startTime,
           'latitude': latitude,
@@ -92,7 +139,9 @@ class JobService {
 
   // 공고 상태 변경
   static Future<ApiResponse<void>> updateJobStatus(
-      String postId, String status) async {
+    String postId,
+    String status,
+  ) async {
     try {
       final res = await http.patch(
         Uri.parse('$_base/api/jobs/$postId'),
@@ -100,7 +149,9 @@ class JobService {
         body: jsonEncode({'status': status}),
       );
       if (res.statusCode == 200) return ApiResponse.ok(null);
-      return ApiResponse.fail('상태 변경 실패');
+
+      final body = jsonDecode(res.body);
+      return ApiResponse.fail(body['detail'] ?? '상세 상태 변경 실패');
     } catch (e) {
       return ApiResponse.fail('네트워크 오류: $e');
     }

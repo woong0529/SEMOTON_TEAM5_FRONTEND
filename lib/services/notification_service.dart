@@ -4,8 +4,7 @@ import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class NotificationService {
-  static const _base = 'http://172.21.113.16:8000';
-
+  static const String _base = 'http://localhost:8000';
 
   static Future<Map<String, String>> _headers() async {
     final token = await TokenStorage.getToken();
@@ -15,7 +14,8 @@ class NotificationService {
     };
   }
 
-  static Future<ApiResponse<List<Map<String, dynamic>>>> getNotifications() async {
+  static Future<ApiResponse<List<Map<String, dynamic>>>>
+  getNotifications() async {
     try {
       final res = await http.get(
         Uri.parse('$_base/api/matches/notifications'),

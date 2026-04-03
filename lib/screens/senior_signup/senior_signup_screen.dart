@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // 1. 포매터 사용을 위해 추가
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
@@ -25,7 +26,7 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
   int _birthYear = 1960;
   String _phone = '';
   String _town = '자주 가는 위치를 지정해주세요';
-  List<PlaceModel> _selectedPlaces = []; // 백엔드 전송용 리스트 추가
+  List<PlaceModel> _selectedPlaces = [];
   String _strengthText = '';
   List<String> _aiTags = [];
   bool _isGeneratingTags = false;
@@ -33,18 +34,22 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
 
   void _next() {
     _pageController.nextPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage++);
   }
 
   void _prev() {
     _pageController.previousPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => _currentPage--);
   }
 
   Future<void> _generateTags(String phone, String text) async {
-    _phone = phone;
+    _phone = phone; // 하이픈이 포함된 번호가 저장됩니다.
     _strengthText = text;
     setState(() => _isGeneratingTags = true);
     await Future.delayed(const Duration(seconds: 2));
@@ -67,21 +72,27 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
 
   Future<void> _submit() async {
     setState(() => _isSubmitting = true);
-    final locationsData = _selectedPlaces.map((p) => {
-      'location_name': p.name,
-      'latitude': p.latitude,
-      'longitude': p.longitude,
-      'is_primary': p.isPrimary,
-    }).toList();
+    final locationsData = _selectedPlaces
+        .map(
+          (p) => {
+            'location_name': p.name,
+            'latitude': p.latitude,
+            'longitude': p.longitude,
+            'is_primary': p.isPrimary,
+          },
+        )
+        .toList();
 
-    final finalLocations = locationsData.isNotEmpty 
-      ? locationsData 
-      : [{
-          'location_name': '기본 거점',
-          'latitude': 37.5665,
-          'longitude': 126.9780,
-          'is_primary': true,
-        }];
+    final finalLocations = locationsData.isNotEmpty
+        ? locationsData
+        : [
+            {
+              'location_name': '기본 거점',
+              'latitude': 37.5665,
+              'longitude': 126.9780,
+              'is_primary': true,
+            },
+          ];
 
     final res = await AuthService.signupSenior(
       phoneNumber: _phone,
@@ -102,9 +113,9 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
         (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.error ?? '가입 실패')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.error ?? '가입 실패')));
     }
   }
 
@@ -122,25 +133,46 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _StepAuthCode(
-                      onNext: (code) { _authCode = code; _next(); }),
+                    onNext: (code) {
+                      _authCode = code;
+                      _next();
+                    },
+                  ),
                   _StepName(
-                      onNext: (name) { _name = name; _next(); },
-                      onBack: _prev),
+                    onNext: (name) {
+                      _name = name;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepGender(
-                      selected: _gender,
-                      onNext: (g) { _gender = g; _next(); },
-                      onBack: _prev),
+                    selected: _gender,
+                    onNext: (g) {
+                      _gender = g;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepBirthYear(
-                      onNext: (y) { _birthYear = y; _next(); },
-                      onBack: _prev),
+                    onNext: (y) {
+                      _birthYear = y;
+                      _next();
+                    },
+                    onBack: _prev,
+                  ),
                   _StepLocation(
                     town: _town,
                     onLocationChanged: (List<PlaceModel> places) {
                       setState(() {
                         _selectedPlaces = places;
                         if (places.isNotEmpty) {
-                          final primary = places.firstWhere((p) => p.isPrimary, orElse: () => places.first);
-                          _town = places.length > 1 ? "${primary.name} 외 ${places.length - 1}곳" : primary.name;
+                          final primary = places.firstWhere(
+                            (p) => p.isPrimary,
+                            orElse: () => places.first,
+                          );
+                          _town = places.length > 1
+                              ? "${primary.name} 외 ${places.length - 1}곳"
+                              : primary.name;
                         } else {
                           _town = '';
                         }
@@ -174,6 +206,7 @@ class _SeniorSignupScreenState extends State<SeniorSignupScreen> {
   }
 }
 
+// --- 공통 위젯들 생략 (기존 코드와 동일) ---
 class _ProgressBar extends StatelessWidget {
   final int current;
   final int total;
@@ -236,7 +269,6 @@ class _StepTitle extends StatelessWidget {
   }
 }
 
-// Step 0: 복지관 코드
 class _StepAuthCode extends StatefulWidget {
   final void Function(String) onNext;
   const _StepAuthCode({required this.onNext});
@@ -280,7 +312,6 @@ class _StepAuthCodeState extends State<_StepAuthCode> {
   }
 }
 
-// Step 1: 이름
 class _StepName extends StatefulWidget {
   final void Function(String) onNext;
   final VoidCallback onBack;
@@ -414,13 +445,15 @@ class _StepNameState extends State<_StepName> {
   }
 }
 
-// Step 2: 성별
 class _StepGender extends StatefulWidget {
   final String selected;
   final void Function(String) onNext;
   final VoidCallback onBack;
-  const _StepGender(
-      {required this.selected, required this.onNext, required this.onBack});
+  const _StepGender({
+    required this.selected,
+    required this.onNext,
+    required this.onBack,
+  });
 
   @override
   State<_StepGender> createState() => _StepGenderState();
@@ -456,15 +489,18 @@ class _StepGenderState extends State<_StepGender> {
                       color: sel ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
                     child: Center(
-                      child: Text(g,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: sel ? Colors.white : AppColors.text,
-                          )),
+                      child: Text(
+                        g,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: sel ? Colors.white : AppColors.text,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -472,11 +508,24 @@ class _StepGenderState extends State<_StepGender> {
             }).toList(),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () => widget.onNext(_selected))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () => widget.onNext(_selected),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -484,7 +533,6 @@ class _StepGenderState extends State<_StepGender> {
   }
 }
 
-// Step 3: 생년월일
 class _StepBirthYear extends StatefulWidget {
   final void Function(int) onNext;
   final VoidCallback onBack;
@@ -511,17 +559,30 @@ class _StepBirthYearState extends State<_StepBirthYear> {
             decoration: const InputDecoration(hintText: '예: 19650712'),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: () {
-              final text = _controller.text.trim();
-              if (text.length < 4) return;
-              final year = int.tryParse(text.substring(0, 4));
-              if (year == null) return;
-              widget.onNext(year);
-            })),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: '다음',
+                  onTap: () {
+                    final text = _controller.text.trim();
+                    if (text.length < 4) return;
+                    final year = int.tryParse(text.substring(0, 4));
+                    if (year == null) return;
+                    widget.onNext(year);
+                  },
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -529,7 +590,6 @@ class _StepBirthYearState extends State<_StepBirthYear> {
   }
 }
 
-// Step 4: 위치 선택
 class _StepLocation extends StatefulWidget {
   final String town;
   final void Function(List<PlaceModel>) onLocationChanged;
@@ -547,7 +607,6 @@ class _StepLocation extends StatefulWidget {
 }
 
 class _StepLocationState extends State<_StepLocation> {
-
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
@@ -572,9 +631,7 @@ class _StepLocationState extends State<_StepLocation> {
                 ),
               );
               if (result != null && result.isNotEmpty) {
-                setState(() {
-                  widget.onLocationChanged(result);
-                });
+                widget.onLocationChanged(result);
               }
             },
           ),
@@ -588,8 +645,11 @@ class _StepLocationState extends State<_StepLocation> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.place_rounded,
-                      color: AppColors.primary, size: 20),
+                  const Icon(
+                    Icons.place_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -607,11 +667,21 @@ class _StepLocationState extends State<_StepLocation> {
               ),
             ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: widget.onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(text: '다음', onTap: widget.onNext)),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: '이전',
+                  filled: false,
+                  onTap: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(text: '다음', onTap: widget.onNext),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -619,8 +689,7 @@ class _StepLocationState extends State<_StepLocation> {
   }
 }
 
-
-// Step 5: 강점 입력
+// --- 수정된 _StepStrength 부분 ---
 class _StepStrength extends StatefulWidget {
   final void Function(String phone, String text) onNext;
   final VoidCallback onBack;
@@ -704,6 +773,12 @@ class _StepStrengthState extends State<_StepStrength> {
           TextField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
+            // 2. 자동 하이픈 및 입력 제한 추가
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+              PhoneNumberFormatter(),
+            ],
             decoration: const InputDecoration(
               labelText: '전화번호',
               hintText: '010-1234-5678',
@@ -727,7 +802,7 @@ class _StepStrengthState extends State<_StepStrength> {
               hintText: '예: 아이와 잘 놀아주고, 병원 동행도 꼼꼼하게 할 수 있어요',
             ),
           ),
-          const SizedBox(height: 24), // 여유 공간 확보
+          const SizedBox(height: 24),
           Center(
             child: GestureDetector(
               onTap: _toggleListening,
@@ -799,31 +874,33 @@ class _StepStrengthState extends State<_StepStrength> {
                         onTap: () {
                           final phone = _phoneController.text.trim();
                           final text = _textController.text.trim();
-                          
+
                           if (phone.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('전화번호를 입력해주세요')),
                             );
                             return;
                           }
-                          
-                          // 하이픈 포함 검증 (010-XXXX-XXXX 형식)
+
                           final phoneRegex = RegExp(r'^010-\d{4}-\d{4}$');
                           if (!phoneRegex.hasMatch(phone)) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('전화번호는 010-XXXX-XXXX 형식으로 입력해주세요')),
+                              const SnackBar(
+                                content: Text(
+                                  '전화번호는 010-XXXX-XXXX 형식으로 입력해주세요',
+                                ),
+                              ),
                             );
                             return;
                           }
-                          
+
                           if (text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('강점을 입력해주세요')),
                             );
                             return;
                           }
-                          
-                          widget.onNext(phone, text);
+
                           widget.onNext(phone, text);
                         },
                       ),
@@ -837,7 +914,6 @@ class _StepStrengthState extends State<_StepStrength> {
   }
 }
 
-// Step 6: 프로필 미리보기
 class _StepPreview extends StatelessWidget {
   final String name;
   final String gender;
@@ -867,8 +943,10 @@ class _StepPreview extends StatelessWidget {
         children: [
           const _StepTitle('AI 태그를\n만들었어요'),
           const SizedBox(height: 8),
-          const Text('아래 프로필로 공고를 추천받게 돼요',
-              style: TextStyle(fontSize: 15, color: AppColors.subText)),
+          const Text(
+            '아래 프로필로 공고를 추천받게 돼요',
+            style: TextStyle(fontSize: 15, color: AppColors.subText),
+          ),
           const SizedBox(height: 28),
           Container(
             width: double.infinity,
@@ -880,41 +958,57 @@ class _StepPreview extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  width: 90, height: 90,
+                  width: 90,
+                  height: 90,
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18)),
-                  child: const Icon(Icons.person,
-                      size: 48, color: AppColors.primary),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 14),
-                Text(name,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('$gender · $birthYear년생',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
-                if (town.isNotEmpty &&
-                    town != '자주 가는 위치를 지정해주세요') ...[
+                Text(
+                  '$gender · $birthYear년생',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                if (town.isNotEmpty && town != '자주 가는 위치를 지정해주세요') ...[
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.place_outlined,
-                          color: Colors.white70, size: 14),
+                      const Icon(
+                        Icons.place_outlined,
+                        color: Colors.white70,
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
-                      Text(town,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13)),
+                      Text(
+                        town,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ],
                 const SizedBox(height: 16),
                 Wrap(
-                  spacing: 8, runSpacing: 8,
+                  spacing: 8,
+                  runSpacing: 8,
                   alignment: WrapAlignment.center,
                   children: tags.map((t) => TagChip(label: t)).toList(),
                 ),
@@ -922,16 +1016,51 @@ class _StepPreview extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Row(children: [
-            Expanded(child: AppButton(text: '이전', filled: false, onTap: onBack)),
-            const SizedBox(width: 12),
-            Expanded(child: AppButton(
-                text: isLoading ? '가입 중...' : '가입 완료',
-                onTap: isLoading ? () {} : onSubmit)),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(text: '이전', filled: false, onTap: onBack),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppButton(
+                  text: isLoading ? '가입 중...' : '가입 완료',
+                  onTap: isLoading ? () {} : onSubmit,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+}
+
+// 3. 하이픈 자동 삽입 포매터 클래스
+class PhoneNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    String formatted = "";
+
+    if (text.length >= 1) {
+      formatted += text.substring(0, text.length >= 3 ? 3 : text.length);
+    }
+    if (text.length >= 4) {
+      formatted += "-${text.substring(3, text.length >= 7 ? 7 : text.length)}";
+    }
+    if (text.length >= 8) {
+      formatted +=
+          "-${text.substring(7, text.length >= 11 ? 11 : text.length)}";
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

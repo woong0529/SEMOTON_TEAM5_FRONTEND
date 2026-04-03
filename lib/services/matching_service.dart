@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/api_response.dart';
 import '../utils/token_storage.dart';
 
 class MatchingService {
-  static String get _base => dotenv.env['BASE_URL'] ?? 'http://172.21.113.16:8000';
-
+  static const String _base = 'http://localhost:8000';
 
   static Future<Map<String, String>> _headers() async {
     final token = await TokenStorage.getToken();
@@ -57,7 +55,9 @@ class MatchingService {
 
   // 수락 / 거절
   static Future<ApiResponse<void>> updateMatchStatus(
-      String matchId, String status) async {
+    String matchId,
+    String status,
+  ) async {
     try {
       final res = await http.patch(
         Uri.parse('$_base/api/matches/$matchId/status'),
@@ -73,7 +73,8 @@ class MatchingService {
   }
 
   // 활성 매칭 조회
-  static Future<ApiResponse<List<Map<String, dynamic>>>> getActiveMatches() async {
+  static Future<ApiResponse<List<Map<String, dynamic>>>>
+  getActiveMatches() async {
     try {
       final res = await http.get(
         Uri.parse('$_base/api/matches/active'),
