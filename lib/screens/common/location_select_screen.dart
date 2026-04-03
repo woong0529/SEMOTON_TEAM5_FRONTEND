@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:kakaomap_webview/kakaomap_webview.dart';
 
 class PlaceModel {
   String name;
@@ -55,19 +54,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
             flex: 4,
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: KakaoMapView(
-                    width: MediaQuery.of(context).size.width,
-                    height: double.infinity,
-                    kakaoMapKey: kakaoMapKey,
-                    lat: _currentLat,
-                    lng: _currentLng,
-                    showMapTypeControl: true,
-                    showZoomControl: true,
-                    onTapMarker: _handleMapTapMessage,
-                    customScript: _buildKakaoMapScript(),
-                  ),
-                ),
                 const Center(
                   child: Icon(
                     Icons.location_on,

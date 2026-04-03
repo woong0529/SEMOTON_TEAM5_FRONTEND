@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
@@ -290,6 +291,60 @@ class _StepName extends StatefulWidget {
 
 class _StepNameState extends State<_StepName> {
   final _controller = TextEditingController();
+  bool _isListening = false;
+  late stt.SpeechToText _speech;
+  bool _speechEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechEnabled = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && _isListening) {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        setState(() => _isListening = false);
+      },
+    );
+    setState(() {});
+  }
+
+  void _toggleListening() async {
+    if (!_speechEnabled) return;
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      localeId: 'ko_KR',
+      onResult: (result) {
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _controller.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -538,6 +593,61 @@ class _StepStrength extends StatefulWidget {
 class _StepStrengthState extends State<_StepStrength> {
   final _phoneController = TextEditingController();
   final _textController = TextEditingController();
+  bool _isListening = false;
+  late stt.SpeechToText _speech;
+  bool _speechEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechEnabled = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && _isListening) {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        setState(() => _isListening = false);
+      },
+    );
+    setState(() {});
+  }
+
+  void _toggleListening() async {
+    if (!_speechEnabled) return;
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      localeId: 'ko_KR',
+      onResult: (result) {
+        setState(() {
+          _textController.text = result.recognizedWords;
+          _textController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _textController.text.length),
+          );
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _phoneController.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {

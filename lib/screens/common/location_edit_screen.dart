@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kakaomap_webview/kakaomap_webview.dart';
 import '../../core/app_colors.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/app_button.dart';
 import '../../utils/place_model.dart';
 import '../../services/location_service.dart'; // LocationService 임포트 확인
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -84,18 +81,6 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
           // 1. 카카오맵 영역
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.4,
-            child: KakaoMapView(
-              width: MediaQuery.of(context).size.width,
-              height: double.infinity,
-              kakaoApiKey: kakaoApiKey,
-              onTap: (KakaoMapTapResponse response) {
-                _confirmAddPlace(
-                  response.address ?? "선택한 위치",
-                  response.latLng.latitude,
-                  response.latLng.longitude,
-                );
-              },
-            ),
           ),
           
           const Padding(

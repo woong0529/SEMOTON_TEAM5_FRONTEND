@@ -6,6 +6,7 @@ import '../utils/token_storage.dart';
 class NotificationService {
   static const _base = 'http://10.0.2.2:8000';
 
+
   static Future<Map<String, String>> _headers() async {
     final token = await TokenStorage.getToken();
     return {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kakaomap_webview/kakaomap_webview.dart';
 import '../../core/app_colors.dart';
 import '../../widgets/app_button.dart';
 import '../../utils/place_model.dart';
@@ -38,21 +37,7 @@ class _JobLocationPickerState extends State<JobLocationPicker> {
           Expanded(
             child: Stack(
               children: [
-                KakaoMapView(
-                  width: MediaQuery.of(context).size.width,
-                  height: double.infinity,
-                  kakaoApiKey: kakaoApiKey,
-                  onTap: (KakaoMapTapResponse response) {
-                    setState(() {
-                      _selectedPlace = PlaceModel(
-                        name: response.address ?? "선택한 장소",
-                        latitude: response.latLng.latitude,
-                        longitude: response.latLng.longitude,
-                        isPrimary: true, // 단일 장소이므로 무조건 true
-                      );
-                    });
-                  },
-                ),
+                
                 // 지도가 비어있을 때 안내 문구
                 if (_selectedPlace == null)
                   Positioned(

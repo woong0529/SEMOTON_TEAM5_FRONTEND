@@ -21,3 +21,4 @@ class SeeNearApp extends StatelessWidget {
     );
   }
 }
+
