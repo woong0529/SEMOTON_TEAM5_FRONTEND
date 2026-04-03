@@ -305,29 +305,42 @@ class _StepNameState extends State<_StepName> {
   Future<void> _initSpeech() async {
     _speechEnabled = await _speech.initialize(
       onStatus: (status) {
+        if (!mounted) return;
         if (status == 'notListening' && _isListening) {
           setState(() => _isListening = false);
         }
       },
       onError: (error) {
+        if (!mounted) return;
         setState(() => _isListening = false);
       },
     );
+    if (!mounted) return;
     setState(() {});
   }
 
   void _toggleListening() async {
-    if (!_speechEnabled) return;
+    if (!_speechEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('마이크 권한이 필요합니다. 설정에서 허용해주세요.')),
+        );
+      }
+      return;
+    }
     if (_isListening) {
       await _speech.stop();
+      if (!mounted) return;
       setState(() => _isListening = false);
       return;
     }
 
+    if (!mounted) return;
     setState(() => _isListening = true);
     await _speech.listen(
       localeId: 'ko_KR',
       onResult: (result) {
+        if (!mounted) return;
         setState(() {
           _controller.text = result.recognizedWords;
           _controller.selection = TextSelection.fromPosition(
@@ -335,12 +348,14 @@ class _StepNameState extends State<_StepName> {
           );
         });
       },
+      cancelOnError: true,
     );
   }
 
   @override
   void dispose() {
     _speech.stop();
+    _speech.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -357,7 +372,13 @@ class _StepNameState extends State<_StepName> {
           TextField(
             controller: _controller,
             autofocus: true,
-            decoration: const InputDecoration(hintText: '홍길동'),
+            decoration: InputDecoration(
+              hintText: '홍길동',
+              suffixIcon: IconButton(
+                icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                onPressed: _toggleListening,
+              ),
+            ),
           ),
           const Spacer(),
           Row(children: [
@@ -607,29 +628,42 @@ class _StepStrengthState extends State<_StepStrength> {
   Future<void> _initSpeech() async {
     _speechEnabled = await _speech.initialize(
       onStatus: (status) {
+        if (!mounted) return;
         if (status == 'notListening' && _isListening) {
           setState(() => _isListening = false);
         }
       },
       onError: (error) {
+        if (!mounted) return;
         setState(() => _isListening = false);
       },
     );
+    if (!mounted) return;
     setState(() {});
   }
 
   void _toggleListening() async {
-    if (!_speechEnabled) return;
+    if (!_speechEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('마이크 권한이 필요합니다. 설정에서 허용해주세요.')),
+        );
+      }
+      return;
+    }
     if (_isListening) {
       await _speech.stop();
+      if (!mounted) return;
       setState(() => _isListening = false);
       return;
     }
 
+    if (!mounted) return;
     setState(() => _isListening = true);
     await _speech.listen(
       localeId: 'ko_KR',
       onResult: (result) {
+        if (!mounted) return;
         setState(() {
           _textController.text = result.recognizedWords;
           _textController.selection = TextSelection.fromPosition(
@@ -637,12 +671,14 @@ class _StepStrengthState extends State<_StepStrength> {
           );
         });
       },
+      cancelOnError: true,
     );
   }
 
   @override
   void dispose() {
     _speech.stop();
+    _speech.cancel();
     _phoneController.dispose();
     _textController.dispose();
     super.dispose();
@@ -673,8 +709,12 @@ class _StepStrengthState extends State<_StepStrength> {
           TextField(
             controller: _textController,
             maxLines: 4,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: '예: 아이와 잘 놀아주고, 병원 동행도 꼼꼼하게 할 수 있어요',
+              suffixIcon: IconButton(
+                icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                onPressed: _toggleListening,
+              ),
             ),
           ),
           const Spacer(),
